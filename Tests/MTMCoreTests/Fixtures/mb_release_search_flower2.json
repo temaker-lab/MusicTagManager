@@ -1,0 +1,131 @@
+{
+ "created": "2026-10-01T16:19:11.031Z",
+ "count": 2,
+ "offset": 0,
+ "releases": [
+  {
+   "id": "21b2d187-b7c5-4409-9621-085874d947d7",
+   "score": 100,
+   "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+   "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+   "count": 1,
+   "title": "꽃갈피 둘",
+   "status": "Official",
+   "artist-credit": [
+    {
+     "name": "IU",
+     "artist": {
+      "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+      "name": "IU",
+      "sort-name": "IU"
+     }
+    }
+   ],
+   "release-group": {
+    "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+    "type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+    "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+    "title": "꽃갈피 둘",
+    "primary-type": "EP"
+   },
+   "date": "2017-09-22",
+   "country": "KR",
+   "release-events": [
+    {
+     "date": "2017-09-22",
+     "area": {
+      "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+      "name": "South Korea",
+      "sort-name": "South Korea",
+      "iso-3166-1-codes": [
+       "KR"
+      ]
+     }
+    }
+   ],
+   "barcode": "8804775084348",
+   "label-info": [
+    {
+     "catalog-number": "L100005390",
+     "label": {
+      "id": "512cda7f-d017-45fa-8832-a4d14dcbd9cf",
+      "name": "LOEN Tree"
+     }
+    }
+   ],
+   "track-count": 6,
+   "media": [
+    {
+     "id": "38d5bea1-378e-3aa7-bf59-11c1f7365217",
+     "format": "CD",
+     "disc-count": 1,
+     "track-count": 6
+    }
+   ]
+  },
+  {
+   "id": "1bf9d937-d517-42bc-8bd3-9d17181706bb",
+   "score": 100,
+   "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+   "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+   "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+   "count": 1,
+   "title": "꽃갈피 둘",
+   "status": "Official",
+   "packaging": "None",
+   "text-representation": {
+    "language": "kor",
+    "script": "Kore"
+   },
+   "artist-credit": [
+    {
+     "name": "IU",
+     "artist": {
+      "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+      "name": "IU",
+      "sort-name": "IU"
+     }
+    }
+   ],
+   "release-group": {
+    "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+    "type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+    "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+    "title": "꽃갈피 둘",
+    "primary-type": "EP"
+   },
+   "date": "2017-09-22",
+   "country": "KR",
+   "release-events": [
+    {
+     "date": "2017-09-22",
+     "area": {
+      "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+      "name": "South Korea",
+      "sort-name": "South Korea",
+      "iso-3166-1-codes": [
+       "KR"
+      ]
+     }
+    }
+   ],
+   "label-info": [
+    {
+     "label": {
+      "id": "512cda7f-d017-45fa-8832-a4d14dcbd9cf",
+      "name": "LOEN Tree"
+     }
+    }
+   ],
+   "track-count": 6,
+   "media": [
+    {
+     "id": "3e18ff1f-7937-32c5-81e4-9e8e64415027",
+     "format": "Digital Media",
+     "disc-count": 0,
+     "track-count": 6
+    }
+   ]
+  }
+ ]
+}

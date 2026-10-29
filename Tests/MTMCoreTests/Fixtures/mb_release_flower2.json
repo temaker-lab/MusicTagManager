@@ -1,0 +1,382 @@
+{
+ "release-group": {
+  "title": "꽃갈피 둘",
+  "primary-type": "EP",
+  "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+  "artist-credit": [
+   {
+    "artist": {
+     "sort-name": "IU",
+     "country": "KR",
+     "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+     "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+     "disambiguation": "",
+     "type": "Person",
+     "name": "IU"
+    },
+    "joinphrase": "",
+    "name": "IU"
+   }
+  ],
+  "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+  "secondary-types": [],
+  "disambiguation": "",
+  "first-release-date": "2017-09-22",
+  "secondary-type-ids": []
+ },
+ "barcode": "8804775084348",
+ "release-events": [
+  {
+   "date": "2017-09-22",
+   "area": {
+    "name": "South Korea",
+    "type": null,
+    "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+    "disambiguation": "",
+    "iso-3166-1-codes": [
+     "KR"
+    ],
+    "type-id": null,
+    "sort-name": "South Korea"
+   }
+  }
+ ],
+ "date": "2017-09-22",
+ "cover-art-archive": {
+  "back": false,
+  "front": true,
+  "artwork": true,
+  "count": 1,
+  "darkened": false
+ },
+ "status": "Official",
+ "id": "21b2d187-b7c5-4409-9621-085874d947d7",
+ "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+ "packaging": null,
+ "media": [
+  {
+   "tracks": [
+    {
+     "artist-credit": [
+      {
+       "joinphrase": "",
+       "name": "IU",
+       "artist": {
+        "type": "Person",
+        "name": "IU",
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "disambiguation": "",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "KR",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "number": "1",
+     "position": 1,
+     "id": "8568c9e2-2913-4d3f-a835-9c4b21058c86",
+     "length": 218000,
+     "recording": {
+      "isrcs": [
+       "KRA381702215"
+      ],
+      "video": false,
+      "first-release-date": "2017-09-18",
+      "title": "가을 아침",
+      "length": 218000,
+      "artist-credit": [
+       {
+        "artist": {
+         "country": "KR",
+         "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+         "sort-name": "IU",
+         "disambiguation": "",
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "type": "Person",
+         "name": "IU"
+        },
+        "name": "IU",
+        "joinphrase": ""
+       }
+      ],
+      "id": "a0145a34-a529-4936-9ec8-65888bd60e65",
+      "disambiguation": ""
+     },
+     "title": "가을 아침"
+    },
+    {
+     "number": "2",
+     "artist-credit": [
+      {
+       "joinphrase": "",
+       "name": "IU",
+       "artist": {
+        "disambiguation": "",
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "sort-name": "IU",
+        "country": "KR",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "name": "IU",
+        "type": "Person"
+       }
+      }
+     ],
+     "id": "8f9334fa-d948-4495-b46d-6c2a798b0d71",
+     "position": 2,
+     "title": "비밀의 화원",
+     "length": 224000,
+     "recording": {
+      "video": false,
+      "isrcs": [
+       "KRA381702216"
+      ],
+      "first-release-date": "2017-09-22",
+      "title": "비밀의 화원",
+      "length": 224000,
+      "artist-credit": [
+       {
+        "artist": {
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "disambiguation": "",
+         "country": "KR",
+         "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+         "sort-name": "IU",
+         "name": "IU",
+         "type": "Person"
+        },
+        "joinphrase": "",
+        "name": "IU"
+       }
+      ],
+      "disambiguation": "",
+      "id": "076e25c8-8717-4b9c-bb2f-3f7e68a44bb1"
+     }
+    },
+    {
+     "artist-credit": [
+      {
+       "joinphrase": "",
+       "name": "IU",
+       "artist": {
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "KR",
+        "sort-name": "IU",
+        "disambiguation": "",
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "type": "Person",
+        "name": "IU"
+       }
+      }
+     ],
+     "number": "3",
+     "id": "a6ddc27c-40c3-4ed5-89cf-1dbd3d507ddb",
+     "position": 3,
+     "length": 266000,
+     "recording": {
+      "isrcs": [
+       "KRA381702217"
+      ],
+      "video": false,
+      "first-release-date": "2017-09-22",
+      "artist-credit": [
+       {
+        "artist": {
+         "name": "IU",
+         "type": "Person",
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "disambiguation": "",
+         "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+         "country": "KR",
+         "sort-name": "IU"
+        },
+        "joinphrase": "",
+        "name": "IU"
+       }
+      ],
+      "id": "bbbf5ee3-d242-4ca5-baa0-52e41b58fee2",
+      "disambiguation": "",
+      "title": "잠 못 드는 밤 비는 내리고",
+      "length": 266520
+     },
+     "title": "잠 못 드는 밤 비는 내리고"
+    },
+    {
+     "title": "어젯밤 이야기",
+     "length": 233000,
+     "recording": {
+      "artist-credit": [
+       {
+        "artist": {
+         "type": "Person",
+         "name": "IU",
+         "country": "KR",
+         "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+         "sort-name": "IU",
+         "disambiguation": "",
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c"
+        },
+        "joinphrase": "",
+        "name": "IU"
+       }
+      ],
+      "disambiguation": "",
+      "id": "f33f9441-a6a4-480d-aee0-41f61817489b",
+      "title": "어젯밤 이야기",
+      "length": 233000,
+      "isrcs": [
+       "KRA381702218"
+      ],
+      "video": false,
+      "first-release-date": "2017-09-22"
+     },
+     "artist-credit": [
+      {
+       "artist": {
+        "type": "Person",
+        "name": "IU",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "KR",
+        "sort-name": "IU",
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "disambiguation": ""
+       },
+       "joinphrase": "",
+       "name": "IU"
+      }
+     ],
+     "number": "4",
+     "id": "eb1c20e9-73b5-4572-8051-d762639cbe81",
+     "position": 4
+    },
+    {
+     "position": 5,
+     "id": "2fcf91fa-441a-44e8-8a63-9f55166b9136",
+     "number": "5",
+     "artist-credit": [
+      {
+       "artist": {
+        "name": "IU",
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "KR",
+        "sort-name": "IU",
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "disambiguation": ""
+       },
+       "name": "IU",
+       "joinphrase": ""
+      }
+     ],
+     "recording": {
+      "first-release-date": "2017-09-22",
+      "isrcs": [
+       "KRA381702219"
+      ],
+      "video": false,
+      "length": 337000,
+      "title": "개여울",
+      "id": "4ac4bea6-757c-4180-98d0-331f36e4f6a8",
+      "disambiguation": "",
+      "artist-credit": [
+       {
+        "artist": {
+         "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+         "country": "KR",
+         "sort-name": "IU",
+         "disambiguation": "",
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "type": "Person",
+         "name": "IU"
+        },
+        "joinphrase": "",
+        "name": "IU"
+       }
+      ]
+     },
+     "length": 337000,
+     "title": "개여울"
+    },
+    {
+     "length": 224000,
+     "recording": {
+      "isrcs": [
+       "KRA381702220"
+      ],
+      "video": false,
+      "first-release-date": "2017-09-22",
+      "artist-credit": [
+       {
+        "artist": {
+         "name": "IU",
+         "type": "Person",
+         "disambiguation": "",
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "sort-name": "IU",
+         "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+         "country": "KR"
+        },
+        "joinphrase": "",
+        "name": "IU"
+       }
+      ],
+      "id": "7f428d56-b6f9-4867-95f9-afaad9030aac",
+      "disambiguation": "",
+      "title": "매일 그대와",
+      "length": 224000
+     },
+     "title": "매일 그대와",
+     "artist-credit": [
+      {
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "disambiguation": "",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "country": "KR",
+        "sort-name": "IU",
+        "name": "IU",
+        "type": "Person"
+       },
+       "name": "IU",
+       "joinphrase": ""
+      }
+     ],
+     "number": "6",
+     "position": 6,
+     "id": "d870298a-0e26-4271-a9b0-48954dc9352d"
+    }
+   ],
+   "track-count": 6,
+   "track-offset": 0,
+   "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+   "title": "",
+   "format": "CD",
+   "id": "38d5bea1-378e-3aa7-bf59-11c1f7365217",
+   "position": 1
+  }
+ ],
+ "quality": "normal",
+ "artist-credit": [
+  {
+   "artist": {
+    "disambiguation": "",
+    "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+    "country": "KR",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "sort-name": "IU",
+    "type": "Person",
+    "name": "IU"
+   },
+   "joinphrase": "",
+   "name": "IU"
+  }
+ ],
+ "packaging-id": null,
+ "disambiguation": "",
+ "asin": null,
+ "country": "KR",
+ "text-representation": {
+  "script": null,
+  "language": null
+ },
+ "title": "꽃갈피 둘"
+}

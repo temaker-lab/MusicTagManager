@@ -1,0 +1,287 @@
+{
+ "results": [
+  {
+   "id": "38bc8b02-0b6d-4d34-9875-6dabc0ee41ee",
+   "recordings": [
+    {
+     "artists": [
+      {
+       "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+       "name": "IU"
+      }
+     ],
+     "duration": 218.0,
+     "id": "a0145a34-a529-4936-9ec8-65888bd60e65",
+     "releasegroups": [
+      {
+       "artists": [
+        {
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "name": "IU"
+        }
+       ],
+       "id": "08c5e3ea-a6b1-43d1-a4fa-4e9f27d6e4f3",
+       "releases": [
+        {
+         "country": "KR",
+         "date": {
+          "day": 18,
+          "month": 9,
+          "year": 2017
+         },
+         "id": "94a26df7-49df-45be-ab0f-dab5dd3536c9",
+         "medium_count": 1,
+         "mediums": [
+          {
+           "format": "Digital Media",
+           "position": 1,
+           "track_count": 1,
+           "tracks": [
+            {
+             "id": "6627dfbf-78c5-4de0-8391-b32ba6a558eb",
+             "position": 1
+            }
+           ]
+          }
+         ],
+         "releaseevents": [
+          {
+           "country": "KR",
+           "date": {
+            "day": 18,
+            "month": 9,
+            "year": 2017
+           }
+          }
+         ],
+         "track_count": 1
+        },
+        {
+         "country": "US",
+         "date": {
+          "day": 18,
+          "month": 9,
+          "year": 2017
+         },
+         "id": "ab7cd62a-1c54-42e2-828a-bc69d2efe6d4",
+         "medium_count": 1,
+         "mediums": [
+          {
+           "format": "Digital Media",
+           "position": 1,
+           "track_count": 1,
+           "tracks": [
+            {
+             "id": "f629c1f1-b861-4913-9681-9b2d12003d9a",
+             "position": 1,
+             "title": "Gaeul Achim: Autumn Morning"
+            }
+           ]
+          }
+         ],
+         "releaseevents": [
+          {
+           "country": "US",
+           "date": {
+            "day": 18,
+            "month": 9,
+            "year": 2017
+           }
+          }
+         ],
+         "title": "Gaeul Achim: Autumn Morning",
+         "track_count": 1
+        }
+       ],
+       "title": "가을 아침",
+       "type": "Single"
+      },
+      {
+       "artists": [
+        {
+         "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+         "name": "IU"
+        }
+       ],
+       "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+       "releases": [
+        {
+         "country": "US",
+         "date": {
+          "day": 22,
+          "month": 9,
+          "year": 2017
+         },
+         "id": "588b1f21-5e99-4137-9e34-6584caaa6c35",
+         "medium_count": 1,
+         "mediums": [
+          {
+           "format": "Digital Media",
+           "position": 1,
+           "track_count": 6,
+           "tracks": [
+            {
+             "id": "3cad9246-335e-4a4e-81ab-994a5fe5c7c7",
+             "position": 1,
+             "title": "Autumn Morning"
+            }
+           ]
+          }
+         ],
+         "releaseevents": [
+          {
+           "country": "US",
+           "date": {
+            "day": 22,
+            "month": 9,
+            "year": 2017
+           }
+          }
+         ],
+         "title": "A Flower Bookmark, Pt. 2",
+         "track_count": 6
+        },
+        {
+         "country": "KR",
+         "date": {
+          "day": 22,
+          "month": 9,
+          "year": 2017
+         },
+         "id": "1bf9d937-d517-42bc-8bd3-9d17181706bb",
+         "medium_count": 1,
+         "mediums": [
+          {
+           "format": "Digital Media",
+           "position": 1,
+           "track_count": 6,
+           "tracks": [
+            {
+             "id": "184bec53-991d-4fb5-b20a-550f90be8485",
+             "position": 1
+            }
+           ]
+          }
+         ],
+         "releaseevents": [
+          {
+           "country": "KR",
+           "date": {
+            "day": 22,
+            "month": 9,
+            "year": 2017
+           }
+          }
+         ],
+         "track_count": 6
+        },
+        {
+         "country": "KR",
+         "date": {
+          "day": 22,
+          "month": 9,
+          "year": 2017
+         },
+         "id": "21b2d187-b7c5-4409-9621-085874d947d7",
+         "medium_count": 1,
+         "mediums": [
+          {
+           "format": "CD",
+           "position": 1,
+           "track_count": 6,
+           "tracks": [
+            {
+             "id": "8568c9e2-2913-4d3f-a835-9c4b21058c86",
+             "position": 1
+            }
+           ]
+          }
+         ],
+         "releaseevents": [
+          {
+           "country": "KR",
+           "date": {
+            "day": 22,
+            "month": 9,
+            "year": 2017
+           }
+          }
+         ],
+         "track_count": 6
+        }
+       ],
+       "title": "꽃갈피 둘",
+       "type": "EP"
+      },
+      {
+       "id": "6b63852f-0892-4bea-b603-597aaca629db",
+       "releases": [
+        {
+         "id": "9e5202e8-ae1f-4a0e-a0d8-f08fe67ce875",
+         "medium_count": 2,
+         "mediums": [
+          {
+           "position": 1,
+           "track_count": 12,
+           "tracks": [
+            {
+             "id": "f5249e8d-f412-48ff-88a6-55df6c3b9831",
+             "position": 10,
+             "title": "Autumn Morning"
+            }
+           ]
+          }
+         ],
+         "track_count": 24
+        },
+        {
+         "country": "TW",
+         "date": {
+          "day": 18,
+          "month": 9,
+          "year": 2018
+         },
+         "id": "57fb8158-6798-492e-b5f9-6fcfb98d2758",
+         "medium_count": 3,
+         "mediums": [
+          {
+           "format": "CD",
+           "position": 1,
+           "track_count": 12,
+           "tracks": [
+            {
+             "id": "3192664f-fe4e-48a0-b576-12e9fd352d56",
+             "position": 10,
+             "title": "秋日早晨"
+            }
+           ]
+          }
+         ],
+         "releaseevents": [
+          {
+           "country": "TW",
+           "date": {
+            "day": 18,
+            "month": 9,
+            "year": 2018
+           }
+          }
+         ],
+         "track_count": 32
+        }
+       ],
+       "secondarytypes": [
+        "Compilation"
+       ],
+       "title": "Smash Hits 2: The Stories Between U & I",
+       "type": "Album"
+      }
+     ],
+     "title": "가을 아침"
+    }
+   ],
+   "score": 0.9995385
+  }
+ ],
+ "status": "ok"
+}

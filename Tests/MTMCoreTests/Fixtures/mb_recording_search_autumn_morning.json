@@ -1,0 +1,475 @@
+{
+ "created": "2026-10-01T16:19:15.542Z",
+ "count": 1,
+ "offset": 0,
+ "recordings": [
+  {
+   "id": "a0145a34-a529-4936-9ec8-65888bd60e65",
+   "score": 100,
+   "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+   "title": "가을 아침",
+   "length": 218000,
+   "video": null,
+   "artist-credit": [
+    {
+     "name": "IU",
+     "artist": {
+      "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+      "name": "IU",
+      "sort-name": "IU",
+      "aliases": [
+       {
+        "sort-name": "Lee, Ji-eun",
+        "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+        "name": "Lee Ji-eun",
+        "locale": "en",
+        "type": "Artist name",
+        "primary": null,
+        "begin-date": "2011-01-03",
+        "end-date": null
+       },
+       {
+        "sort-name": "아이유",
+        "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+        "name": "아이유",
+        "locale": "ko",
+        "type": "Artist name",
+        "primary": true,
+        "begin-date": "2008-09-18",
+        "end-date": null
+       },
+       {
+        "sort-name": "이지은",
+        "type-id": "d4dcd0c0-b341-3612-a332-c0ce797b25cf",
+        "name": "이지은",
+        "locale": "ko",
+        "type": "Legal name",
+        "primary": null,
+        "begin-date": "1993-05-16",
+        "end-date": null
+       },
+       {
+        "sort-name": "IU",
+        "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+        "name": "IU",
+        "locale": "en",
+        "type": "Artist name",
+        "primary": true,
+        "begin-date": "2008-09-18",
+        "end-date": null
+       }
+      ]
+     }
+    }
+   ],
+   "first-release-date": "2017-09-18",
+   "releases": [
+    {
+     "id": "9e5202e8-ae1f-4a0e-a0d8-f08fe67ce875",
+     "status-id": "41121bb9-3413-3818-8a9a-9742318349aa",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 2,
+     "title": "Smash Hits 2: The Stories Between U & I",
+     "status": "Pseudo-Release",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "6b63852f-0892-4bea-b603-597aaca629db",
+      "type-id": "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Smash Hits 2: The Stories Between U & I",
+      "primary-type": "Album",
+      "secondary-types": [
+       "Compilation"
+      ],
+      "secondary-type-ids": [
+       "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+      ]
+     },
+     "track-count": 24,
+     "media": [
+      {
+       "id": "0fa33402-2df1-3025-9e02-7cdf4356f9b4",
+       "position": 1,
+       "track": [
+        {
+         "id": "f5249e8d-f412-48ff-88a6-55df6c3b9831",
+         "number": "10",
+         "title": "Autumn Morning",
+         "length": 218893
+        }
+       ],
+       "track-count": 12,
+       "track-offset": 9
+      }
+     ]
+    },
+    {
+     "id": "21b2d187-b7c5-4409-9621-085874d947d7",
+     "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 1,
+     "title": "꽃갈피 둘",
+     "status": "Official",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+      "type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+      "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+      "title": "꽃갈피 둘",
+      "primary-type": "EP"
+     },
+     "date": "2017-09-22",
+     "country": "KR",
+     "release-events": [
+      {
+       "date": "2017-09-22",
+       "area": {
+        "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+        "name": "South Korea",
+        "sort-name": "South Korea",
+        "iso-3166-1-codes": [
+         "KR"
+        ]
+       }
+      }
+     ],
+     "track-count": 6,
+     "media": [
+      {
+       "id": "38d5bea1-378e-3aa7-bf59-11c1f7365217",
+       "position": 1,
+       "format": "CD",
+       "track": [
+        {
+         "id": "8568c9e2-2913-4d3f-a835-9c4b21058c86",
+         "number": "1",
+         "title": "가을 아침",
+         "length": 218000
+        }
+       ],
+       "track-count": 6,
+       "track-offset": 0
+      }
+     ]
+    },
+    {
+     "id": "1bf9d937-d517-42bc-8bd3-9d17181706bb",
+     "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 1,
+     "title": "꽃갈피 둘",
+     "status": "Official",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+      "type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+      "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+      "title": "꽃갈피 둘",
+      "primary-type": "EP"
+     },
+     "date": "2017-09-22",
+     "country": "KR",
+     "release-events": [
+      {
+       "date": "2017-09-22",
+       "area": {
+        "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+        "name": "South Korea",
+        "sort-name": "South Korea",
+        "iso-3166-1-codes": [
+         "KR"
+        ]
+       }
+      }
+     ],
+     "track-count": 6,
+     "media": [
+      {
+       "id": "3e18ff1f-7937-32c5-81e4-9e8e64415027",
+       "position": 1,
+       "format": "Digital Media",
+       "track": [
+        {
+         "id": "184bec53-991d-4fb5-b20a-550f90be8485",
+         "number": "1",
+         "title": "가을 아침",
+         "length": 218000
+        }
+       ],
+       "track-count": 6,
+       "track-offset": 0
+      }
+     ]
+    },
+    {
+     "id": "57fb8158-6798-492e-b5f9-6fcfb98d2758",
+     "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 3,
+     "title": "Smash Hits 2: The Stories Between U & I",
+     "status": "Official",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "6b63852f-0892-4bea-b603-597aaca629db",
+      "type-id": "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Smash Hits 2: The Stories Between U & I",
+      "primary-type": "Album",
+      "secondary-types": [
+       "Compilation"
+      ],
+      "secondary-type-ids": [
+       "dd2a21e1-0c00-3729-a7a0-de60b84eb5d1"
+      ]
+     },
+     "date": "2018-09-18",
+     "country": "TW",
+     "release-events": [
+      {
+       "date": "2018-09-18",
+       "area": {
+        "id": "41637cec-9a4f-389c-86d2-fc6abf3357b5",
+        "name": "Taiwan",
+        "sort-name": "Taiwan",
+        "iso-3166-1-codes": [
+         "TW"
+        ]
+       }
+      }
+     ],
+     "track-count": 32,
+     "media": [
+      {
+       "id": "4fb00707-5fd1-37b9-af69-a698269f8999",
+       "position": 1,
+       "format": "CD",
+       "track": [
+        {
+         "id": "3192664f-fe4e-48a0-b576-12e9fd352d56",
+         "number": "10",
+         "title": "秋日早晨",
+         "length": 218893
+        }
+       ],
+       "track-count": 12,
+       "track-offset": 9
+      }
+     ]
+    },
+    {
+     "id": "588b1f21-5e99-4137-9e34-6584caaa6c35",
+     "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 1,
+     "title": "A Flower Bookmark, Pt. 2",
+     "status": "Official",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "e8d78af8-47b7-425b-958a-03c7f912ae32",
+      "type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+      "primary-type-id": "6d0c5bf6-7a33-3420-a519-44fc63eedebf",
+      "title": "꽃갈피 둘",
+      "primary-type": "EP"
+     },
+     "date": "2017-09-22",
+     "country": "US",
+     "release-events": [
+      {
+       "date": "2017-09-22",
+       "area": {
+        "id": "489ce91b-6658-3307-9877-795b68554c98",
+        "name": "United States",
+        "sort-name": "United States",
+        "iso-3166-1-codes": [
+         "US"
+        ]
+       }
+      }
+     ],
+     "track-count": 6,
+     "media": [
+      {
+       "id": "1a6199b7-6e23-35c9-b104-86cb6d42b20d",
+       "position": 1,
+       "format": "Digital Media",
+       "track": [
+        {
+         "id": "3cad9246-335e-4a4e-81ab-994a5fe5c7c7",
+         "number": "1",
+         "title": "Autumn Morning",
+         "length": 219000
+        }
+       ],
+       "track-count": 6,
+       "track-offset": 0
+      }
+     ]
+    },
+    {
+     "id": "ab7cd62a-1c54-42e2-828a-bc69d2efe6d4",
+     "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 1,
+     "title": "Gaeul Achim: Autumn Morning",
+     "status": "Official",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "08c5e3ea-a6b1-43d1-a4fa-4e9f27d6e4f3",
+      "type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+      "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+      "title": "가을 아침",
+      "primary-type": "Single"
+     },
+     "date": "2017-09-18",
+     "country": "US",
+     "release-events": [
+      {
+       "date": "2017-09-18",
+       "area": {
+        "id": "489ce91b-6658-3307-9877-795b68554c98",
+        "name": "United States",
+        "sort-name": "United States",
+        "iso-3166-1-codes": [
+         "US"
+        ]
+       }
+      }
+     ],
+     "track-count": 1,
+     "media": [
+      {
+       "id": "b8d1da0e-e5ed-3271-a33b-b7f6ab1974b7",
+       "position": 1,
+       "format": "Digital Media",
+       "track": [
+        {
+         "id": "f629c1f1-b861-4913-9681-9b2d12003d9a",
+         "number": "1",
+         "title": "Gaeul Achim: Autumn Morning",
+         "length": 218000
+        }
+       ],
+       "track-count": 1,
+       "track-offset": 0
+      }
+     ]
+    },
+    {
+     "id": "94a26df7-49df-45be-ab0f-dab5dd3536c9",
+     "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+     "artist-credit-id": "eece83ab-3f28-3366-8c0a-3edb2bf6c252",
+     "count": 1,
+     "title": "가을 아침",
+     "status": "Official",
+     "artist-credit": [
+      {
+       "name": "IU",
+       "artist": {
+        "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+        "name": "IU",
+        "sort-name": "IU"
+       }
+      }
+     ],
+     "release-group": {
+      "id": "08c5e3ea-a6b1-43d1-a4fa-4e9f27d6e4f3",
+      "type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+      "primary-type-id": "d6038452-8ee0-3f68-affc-2de9a1ede0b9",
+      "title": "가을 아침",
+      "primary-type": "Single"
+     },
+     "date": "2017-09-18",
+     "country": "KR",
+     "release-events": [
+      {
+       "date": "2017-09-18",
+       "area": {
+        "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+        "name": "South Korea",
+        "sort-name": "South Korea",
+        "iso-3166-1-codes": [
+         "KR"
+        ]
+       }
+      }
+     ],
+     "track-count": 1,
+     "media": [
+      {
+       "id": "c96757f1-71f5-32fc-bdf2-59c069598b56",
+       "position": 1,
+       "format": "Digital Media",
+       "track": [
+        {
+         "id": "6627dfbf-78c5-4de0-8391-b32ba6a558eb",
+         "number": "1",
+         "title": "가을 아침",
+         "length": 218000
+        }
+       ],
+       "track-count": 1,
+       "track-offset": 0
+      }
+     ]
+    }
+   ],
+   "isrcs": [
+    "KRA381702215"
+   ]
+  }
+ ]
+}

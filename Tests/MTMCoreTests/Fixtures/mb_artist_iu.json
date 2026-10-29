@@ -1,0 +1,91 @@
+{
+ "life-span": {
+  "end": null,
+  "begin": "1993-05-16",
+  "ended": false
+ },
+ "disambiguation": "",
+ "ipis": [
+  "00825414058"
+ ],
+ "isnis": [
+  "0000000406814670"
+ ],
+ "area": {
+  "disambiguation": "",
+  "id": "b9f7d640-46e8-313e-b158-ded6d18593b3",
+  "iso-3166-1-codes": [
+   "KR"
+  ],
+  "name": "South Korea",
+  "type-id": null,
+  "sort-name": "South Korea",
+  "type": null
+ },
+ "end-area": null,
+ "gender": "Female",
+ "country": "KR",
+ "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+ "sort-name": "IU",
+ "begin-area": {
+  "type": null,
+  "sort-name": "Seoul",
+  "type-id": null,
+  "name": "Seoul",
+  "iso-3166-2-codes": [
+   "KR-11"
+  ],
+  "id": "aa03e165-4c73-4959-91c0-a99f9fa8ecab",
+  "disambiguation": ""
+ },
+ "gender-id": "93452b5a-a947-30c8-934f-6a4056b151c2",
+ "id": "b9545342-1e6d-4dae-84ac-013374ad8d7c",
+ "type": "Person",
+ "aliases": [
+  {
+   "ended": false,
+   "begin": "2008-09-18",
+   "end": null,
+   "primary": true,
+   "sort-name": "IU",
+   "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+   "name": "IU",
+   "locale": "en",
+   "type": "Artist name"
+  },
+  {
+   "name": "Lee Ji-eun",
+   "locale": "en",
+   "sort-name": "Lee, Ji-eun",
+   "primary": false,
+   "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+   "type": "Artist name",
+   "end": null,
+   "begin": "2011-01-03",
+   "ended": false
+  },
+  {
+   "begin": "2008-09-18",
+   "ended": false,
+   "end": null,
+   "type": "Artist name",
+   "primary": true,
+   "sort-name": "아이유",
+   "type-id": "894afba6-2816-3c24-8072-eadb66bd04bc",
+   "name": "아이유",
+   "locale": "ko"
+  },
+  {
+   "locale": "ko",
+   "name": "이지은",
+   "type-id": "d4dcd0c0-b341-3612-a332-c0ce797b25cf",
+   "primary": false,
+   "sort-name": "이지은",
+   "type": "Legal name",
+   "end": null,
+   "begin": "1993-05-16",
+   "ended": false
+  }
+ ],
+ "name": "IU"
+}

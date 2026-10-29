@@ -1,0 +1,20 @@
+# 빌드 산출물
+.build/
+build/
+dist/
+DerivedData/
+
+# Xcode · SwiftPM 사용자 데이터
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+
+# macOS
+.DS_Store
+
+# 비밀 키 — 절대 커밋 금지 (Sparkle EdDSA 개인키·코드서명 인증서 등)
+*.pem
+*.p12
+sparkle_private_key*
+*_private_key*
