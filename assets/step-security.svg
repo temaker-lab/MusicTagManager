@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210" role="img" aria-label="System Settings Privacy and Security, Open Anyway">
+  <rect width="320" height="210" fill="#f6f7fb"/>
+  <rect x="14" y="16" width="292" height="178" rx="12" fill="#ffffff" stroke="#e7e9f0"/>
+  <!-- header: shield + title -->
+  <path d="M40 34l16 6v10c0 9-7 15-16 19-9-4-16-10-16-19V40z" fill="#34c759"/>
+  <path d="M33 49l5 5 10-10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="68" y="38" width="150" height="9" rx="4.5" fill="#16181d" opacity="0.8"/>
+  <rect x="68" y="54" width="96" height="7" rx="3.5" fill="#c9cdd8"/>
+  <line x1="28" y1="84" x2="292" y2="84" stroke="#eef0f5"/>
+  <!-- blocked message -->
+  <rect x="28" y="104" width="190" height="8" rx="4" fill="#c9cdd8"/>
+  <rect x="28" y="120" width="150" height="8" rx="4" fill="#dfe2ea"/>
+  <!-- Open Anyway button -->
+  <rect x="196" y="150" width="96" height="30" rx="8" fill="#7c5cff"/>
+  <text x="244" y="170" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-size="12" font-weight="600" fill="#ffffff">Open Anyway</text>
+</svg>
