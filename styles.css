@@ -98,6 +98,22 @@ a:hover { text-decoration: underline; }
 .step h3 { margin: 0 0 6px; font-size: 17px; }
 .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
 
+/* Screenshots */
+.shots { max-width: 980px; margin: 8px auto 0; display: grid; gap: 56px; }
+.shot {
+  margin: 0; display: grid; grid-template-columns: 1.25fr 1fr;
+  gap: 36px; align-items: center;
+}
+.shot:nth-child(even) { grid-template-columns: 1fr 1.25fr; }
+.shot:nth-child(even) img { order: 2; }
+.shot img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+}
+.shot figcaption h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.01em; }
+.shot figcaption p { margin: 0; color: var(--muted); font-size: 15px; }
+
 /* Feature cards */
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
@@ -158,6 +174,9 @@ code { background: var(--bg-alt); padding: 1px 6px; border-radius: 6px; font-siz
 @media (max-width: 860px) {
   .steps, .cards { grid-template-columns: repeat(2, 1fr); }
   .install-figs { grid-template-columns: 1fr; max-width: 420px; }
+  .shots { gap: 40px; }
+  .shot, .shot:nth-child(even) { grid-template-columns: 1fr; gap: 16px; }
+  .shot:nth-child(even) img { order: 0; }
   .nav-links { display: none; }
   .footer-inner { grid-template-columns: 1fr; }
 }
