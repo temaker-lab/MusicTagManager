@@ -14,14 +14,14 @@ struct MusicTagManagerApp: App {
         Window("MusicTag Manager", id: "main") {
             RootView()
                 .environment(state)
-                .frame(minWidth: 1180, minHeight: 760)
                 .task {
                     UpdateFeature.start()
                     await state.bootstrap()
                 }
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentMinSize)
+        // 창 크기가 콘텐츠 크기를 따라가게 한다 → 온보딩은 작게, 대시보드는 크게.
+        .windowResizability(.contentSize)
         .commands {
             // 앱 메뉴 'MusicTag Manager' > 업데이트 확인… (설정·링크된 경우에만 표시)
             CommandGroup(after: .appInfo) {
@@ -47,13 +47,15 @@ struct RootView: View {
         Group {
             switch state.phase {
             case .launching:
-                ProgressView(L("root.launching"))
+                ProgressView(L("root.launching")).modifier(MainWindowFrame())
             case .onboarding:
-                OnboardingView()
+                // 온보딩은 메인 창을 꽉 채우지 않도록 작은 고정 크기로 (≈ 메인의 2/3)
+                OnboardingView().frame(width: 800, height: 600)
             case .ready:
-                DashboardView()
+                DashboardView().modifier(MainWindowFrame())
             case .failed(let message):
                 ContentUnavailableView(L("root.failed.title"), systemImage: "exclamationmark.triangle", description: Text(message))
+                    .modifier(MainWindowFrame())
             }
         }
         .themed(state.settings.appearance)
@@ -70,6 +72,15 @@ struct RootView: View {
         } message: {
             Text(Lf("root.removedPlaylist.msg", state.removedPlaylistNotice.joined(separator: ", ")))
         }
+    }
+}
+
+/// 메인 화면(대시보드 등)의 창 크기: 최소 1180×760, 기본 이 크기, 사용자가 더 크게 조절 가능.
+/// 온보딩 단계는 이 프레임 대신 작은 고정 크기를 쓴다.
+private struct MainWindowFrame: ViewModifier {
+    func body(content: Content) -> some View {
+        content.frame(minWidth: 1180, idealWidth: 1180, maxWidth: .infinity,
+                      minHeight: 760, idealHeight: 760, maxHeight: .infinity)
     }
 }
 

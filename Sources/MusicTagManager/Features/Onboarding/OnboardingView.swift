@@ -404,7 +404,7 @@ private struct HowItWorksPreview: View {
                     details: [L("onb.how.apply.detail"), L("onb.how.apply.detail2")])
         }
         .padding(24)
-        .frame(width: 920)
+        .frame(width: 752)
         .onAppear { LocalizationManager.shared.language = language }
     }
 }

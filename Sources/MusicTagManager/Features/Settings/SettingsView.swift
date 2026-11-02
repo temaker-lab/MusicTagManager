@@ -269,7 +269,7 @@ private struct GeneralSettingsTab: View {
             OnboardingView(mode: .replay) { showOnboarding = false }
                 .environment(state)
                 .themed(state.settings.appearance)
-                .frame(width: 760, height: 620)
+                .frame(width: 800, height: 600)
         }
     }
 }
