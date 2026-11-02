@@ -62,8 +62,8 @@ common_release = {
 app_settings = {
     "PRODUCT_NAME": "MusicTagManager",
     "PRODUCT_BUNDLE_IDENTIFIER": "com.temzzang.MusicTagManager",
-    "MARKETING_VERSION": "1.0.1",
-    "CURRENT_PROJECT_VERSION": "2",
+    "MARKETING_VERSION": "1.0.2",
+    "CURRENT_PROJECT_VERSION": "3",
     "INFOPLIST_FILE": "Resources/Info.plist",
     "GENERATE_INFOPLIST_FILE": "NO",
     "CODE_SIGN_ENTITLEMENTS": "Resources/MusicTagManager.entitlements",
