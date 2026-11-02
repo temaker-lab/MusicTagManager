@@ -1,3 +1,4 @@
+import AppKit
 import MTMCore
 import SwiftUI
 
@@ -42,7 +43,8 @@ private struct OnboardingContent: View {
                 case .playlists: playlists
                 }
             }
-            .frame(maxWidth: 720, maxHeight: .infinity, alignment: .topLeading)
+            // '사용 방법'은 2열 그리드라 더 넓은 폭을 쓴다
+            .frame(maxWidth: model.step == .howItWorks ? 920 : 720, maxHeight: .infinity, alignment: .topLeading)
             .padding(24)
             Divider()
             footer
@@ -108,19 +110,24 @@ private struct OnboardingContent: View {
     }
 
     /// 핵심 기능 흐름(스캔 → 식별 → 검토 → 적용)을 앱 화면 미리보기 + 상세 설명으로 안내한다.
+    /// 이미지가 들어가면서 세로가 길어지지 않도록 2열 그리드로 배치한다.
     private var howItWorks: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             Text(L("onb.how.intro"))
                 .font(.title3)
                 .fixedSize(horizontal: false, vertical: true)
-            StepRow(mock: .scan, tint: .blue, title: L("onb.how.scan.title"),
-                    details: [L("onb.how.scan.detail"), L("onb.how.scan.detail2")])
-            StepRow(mock: .identify, tint: .purple, title: L("onb.how.identify.title"),
-                    details: [L("onb.how.identify.detail"), L("onb.how.identify.detail2")])
-            StepRow(mock: .review, tint: .orange, title: L("onb.how.review.title"),
-                    details: [L("onb.how.review.detail"), L("onb.how.review.detail2")])
-            StepRow(mock: .apply, tint: .green, title: L("onb.how.apply.title"),
-                    details: [L("onb.how.apply.detail"), L("onb.how.apply.detail2")])
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14),
+                                GridItem(.flexible(), spacing: 14)],
+                      alignment: .leading, spacing: 14) {
+                StepRow(mock: .scan, tint: .blue, title: L("onb.how.scan.title"),
+                        details: [L("onb.how.scan.detail"), L("onb.how.scan.detail2")])
+                StepRow(mock: .identify, tint: .purple, title: L("onb.how.identify.title"),
+                        details: [L("onb.how.identify.detail"), L("onb.how.identify.detail2")])
+                StepRow(mock: .review, tint: .orange, title: L("onb.how.review.title"),
+                        details: [L("onb.how.review.detail"), L("onb.how.review.detail2")])
+                StepRow(mock: .apply, tint: .green, title: L("onb.how.apply.title"),
+                        details: [L("onb.how.apply.detail"), L("onb.how.apply.detail2")])
+            }
             Label(L("onb.how.note"), systemImage: "arrow.uturn.backward.circle")
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -245,7 +252,7 @@ private struct StepRow: View {
     let details: [String]
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .top, spacing: 14) {
             MockScreen(kind: mock, tint: tint)
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(.headline).foregroundStyle(tint)
@@ -274,12 +281,40 @@ private struct MockScreen: View {
     let tint: Color
 
     var body: some View {
-        content
-            .padding(10)
-            .frame(width: 208, height: 124, alignment: .topLeading)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.black.opacity(0.22)))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.08)))
-            .accessibilityHidden(true)
+        Group {
+            if let shot = Self.screenshot(for: kind) {
+                // 실제 앱 화면 스크린샷 (어두운 틀 안에 전체가 보이도록 맞춤)
+                Image(nsImage: shot)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 172, height: 112)
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.black.opacity(0.22)))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.10)))
+            } else {
+                // 리소스를 찾지 못하면 기존 벡터 목업으로 대체
+                content
+                    .padding(10)
+                    .frame(width: 172, height: 112, alignment: .topLeading)
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.black.opacity(0.22)))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.white.opacity(0.08)))
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    /// 앱 번들(Resources/Onboarding)에 포함된 실제 화면 스크린샷. 없으면 nil → 벡터 목업으로 대체.
+    private static func screenshot(for kind: MockKind) -> NSImage? {
+        let name: String
+        switch kind {
+        case .scan: name = "onb-scan"
+        case .identify: name = "onb-identify"
+        case .review: name = "onb-review"
+        case .apply: name = "onb-apply"
+        }
+        let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "Onboarding")
+            ?? Bundle.main.url(forResource: name, withExtension: "png")
+        return url.flatMap { NSImage(contentsOf: $0) }
     }
 
     @ViewBuilder private var content: some View {
@@ -356,7 +391,9 @@ private struct MockScreen: View {
 private struct HowItWorksPreview: View {
     let language: AppLanguage
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 14),
+                            GridItem(.flexible(), spacing: 14)],
+                  alignment: .leading, spacing: 14) {
             StepRow(mock: .scan, tint: .blue, title: L("onb.how.scan.title"),
                     details: [L("onb.how.scan.detail"), L("onb.how.scan.detail2")])
             StepRow(mock: .identify, tint: .purple, title: L("onb.how.identify.title"),
@@ -367,7 +404,7 @@ private struct HowItWorksPreview: View {
                     details: [L("onb.how.apply.detail"), L("onb.how.apply.detail2")])
         }
         .padding(24)
-        .frame(width: 760)
+        .frame(width: 920)
         .onAppear { LocalizationManager.shared.language = language }
     }
 }

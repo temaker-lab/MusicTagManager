@@ -326,7 +326,7 @@ public final class ApplyService: Sendable {
         }
         var mismatches: [String] = []
         for field in change.fields where field != .artwork {
-            if let expected = change.value(of: field), !Self.same(after.value(of: field), expected) {
+            if let expected = change.value(of: field), !Self.verifyMatches(after.value(of: field), expected, field: field) {
                 mismatches.append(field.label)
             }
         }
@@ -379,6 +379,16 @@ public final class ApplyService: Sendable {
             try job.update(db)
             return summary
         }
+    }
+
+    /// 적용 후 검증 비교. 장르는 Music이 자체 장르 목록 기준으로 표기(주로 대소문자)를 바꿔 저장하므로
+    /// (예: `pop` → `Pop`), 대소문자·연속 공백을 무시하고(compareKey) 비교해 오탐('검증 실패: 장르')을 막는다.
+    /// 그 외 필드는 Music이 입력값을 그대로 저장하므로 정확 비교(same)를 유지한다.
+    static func verifyMatches(_ after: FieldValue?, _ expected: FieldValue, field: ProposalField) -> Bool {
+        if field == .genre, case .text(let a)? = after, case .text(let b) = expected {
+            return Normalizer.compareKey(a) == Normalizer.compareKey(b)
+        }
+        return same(after, expected)
     }
 
     static func same(_ current: FieldValue?, _ expected: FieldValue) -> Bool {

@@ -316,6 +316,8 @@ final class AppState {
             // 언어가 바뀌면 전역 지역화 관리자에 반영하고, 미리 계산해 둔 행 문자열(상태·누락 항목 등)도 다시 만든다
             if oldValue.language != settings.language {
                 LocalizationManager.shared.language = settings.language
+                // Sparkle 업데이트 대화상자 등 시스템 UI 언어도 맞춘다 (다음 실행부터 반영)
+                syncSystemUILanguage(settings.language)
                 reloadProposals()
                 reloadJobs()
             }
@@ -363,6 +365,8 @@ final class AppState {
         MTMLoc.translate = { L($0) }
         settings = settingsStore.load()
         LocalizationManager.shared.language = settings.language
+        // Sparkle 등 시스템 제공 UI가 저장된 언어를 따르도록 (업데이터 시작 전인 이 시점에 설정)
+        syncSystemUILanguage(settings.language)
         do {
             let database = try AppDatabase.openDefault()
             self.database = database
@@ -489,14 +493,13 @@ final class AppState {
     /// 검토 대기 수 (사용자 결정이 필요한 곡)
     var reviewCount: Int { reviewRows(includeAll: false).count }
 
-    /// 검토 대기함 목록. 기본은 신뢰도 높음·보통 중 적용할 값이 있는 곡과 적용 실패 곡,
-    /// `includeAll`이면 아직 적용하지 않은 모든 곡(신뢰도 낮음·식별 실패 포함)
+    /// 검토 대기함 목록. 기본은 사용자 결정이 필요한 모든 곡(검토 대기·직접 수정·적용 실패)으로,
+    /// 신뢰도(높음·보통·낮음)와 무관하게 보여 식별 결과 화면의 '검토 대기' 수와 일치한다.
+    /// `includeAll`이면 아직 적용하지 않은 모든 곡(식별 실패·바꿀 값 없음 포함)까지 보여 준다.
     func reviewRows(includeAll: Bool) -> [ProposalRow] {
         proposalRows.filter { row in
             if includeAll { return row.status != .applied }
-            guard row.needsReview else { return false }
-            if case .failed = row.status { return true }
-            return row.level == .high || row.level == .medium
+            return row.needsReview
         }
     }
 

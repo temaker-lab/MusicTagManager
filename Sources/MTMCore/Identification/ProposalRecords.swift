@@ -235,9 +235,11 @@ extension AppDatabase {
             let rows = try String.fetchAll(db, sql: "SELECT persistent_id FROM proposals")
             let stale = rows.filter { !eligible.contains($0) }
             if !stale.isEmpty { try ProposalRecord.deleteAll(db, keys: stale) }
-            // 식별을 다시 실행한 시점부터 상태를 새로 센다 (이전 적용 결과·거절은 상태에 반영하지 않음)
+            // 식별을 다시 실행한 시점부터 상태를 새로 센다 (이전 적용 결과·거절은 상태에 반영하지 않음).
+            // 직접 수정(USER_OVERRIDE)은 결정도, 식별 시각도 보존해야 이미 적용한 직접수정 곡이
+            // 다시 식별해도 '적용 완료'로 유지되고 검토함·전체 적용에 다시 끼어들지 않는다.
             try db.execute(sql: "UPDATE proposals SET decision = 'PENDING' WHERE decision != 'USER_OVERRIDE'")
-            try db.execute(sql: "UPDATE proposals SET identified_at = ?", arguments: [Date()])
+            try db.execute(sql: "UPDATE proposals SET identified_at = ? WHERE decision != 'USER_OVERRIDE'", arguments: [Date()])
             try db.execute(sql: "DELETE FROM albums_resolved WHERE album_group_key NOT IN (SELECT DISTINCT album_group_key FROM proposals)")
         }
     }

@@ -61,6 +61,19 @@ final class LocalizationManager {
 /// 지역화 문자열. 뷰 body 안에서 호출해야 언어 변경 시 자동 갱신된다.
 func L(_ key: String) -> String { LocalizationManager.shared.string(key) }
 
+/// Sparkle 업데이트 대화상자처럼 **시스템·프레임워크가 제공하는 UI**가 앱에서 고른 언어를 따르도록
+/// 프로세스의 `AppleLanguages` 우선순위를 맞춘다. (앱 자체 UI 문구는 `LocalizationManager`가 담당)
+/// 명시 선택(영어·한국어)만 강제하고, '시스템'은 맥 설정을 그대로 쓰도록 재정의를 지운다.
+/// 이미 로드된 번들은 로케일을 캐시하므로, 실행 중 전환은 다음 실행부터 Sparkle UI에 반영된다.
+func syncSystemUILanguage(_ language: AppLanguage) {
+    let key = "AppleLanguages"
+    switch language {
+    case .system: UserDefaults.standard.removeObject(forKey: key)
+    case .english: UserDefaults.standard.set(["en"], forKey: key)
+    case .korean: UserDefaults.standard.set(["ko"], forKey: key)
+    }
+}
+
 /// 현재 앱 언어의 로케일 (날짜·숫자 포맷용). 뷰 body에서 쓰면 언어 변경 시 갱신된다.
 var appLocale: Locale { LocalizationManager.shared.language.locale }
 

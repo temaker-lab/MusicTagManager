@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210" role="img" aria-label="Right-click the app and choose Open">
+  <rect width="320" height="210" fill="#f6f7fb"/>
+  <!-- app icon -->
+  <rect x="36" y="74" width="56" height="56" rx="13" fill="#7c5cff"/>
+  <path d="M64 94v22a9 9 0 1 1-6-8.5V92l16-4v16" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- context menu -->
+  <rect x="104" y="60" width="150" height="128" rx="10" fill="#ffffff" stroke="#e7e9f0"/>
+  <rect x="112" y="70" width="134" height="22" rx="6" fill="#7c5cff"/>
+  <text x="124" y="85" font-family="-apple-system, system-ui, sans-serif" font-size="12" font-weight="600" fill="#ffffff">Open</text>
+  <rect x="116" y="104" width="110" height="7" rx="3.5" fill="#d7dae3"/>
+  <rect x="116" y="122" width="96" height="7" rx="3.5" fill="#d7dae3"/>
+  <rect x="116" y="140" width="118" height="7" rx="3.5" fill="#d7dae3"/>
+  <rect x="116" y="158" width="84" height="7" rx="3.5" fill="#d7dae3"/>
+  <!-- cursor -->
+  <path d="M150 80l0 22 6-6 5 10 4-2-5-10 8 0z" fill="#16181d" stroke="#fff" stroke-width="1.5"/>
+</svg>

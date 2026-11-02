@@ -22,6 +22,8 @@ cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 mkdir -p "$APP/Contents/Resources/bin"
 cp Resources/bin/fpcalc "$APP/Contents/Resources/bin/fpcalc"
+# 온보딩 '사용 방법'에 보여줄 실제 앱 화면 스크린샷
+cp -R Resources/Onboarding "$APP/Contents/Resources/Onboarding"
 
 # --- Sparkle.framework 임베드 (자동 업데이트) ---
 SPARKLE_FW=""
