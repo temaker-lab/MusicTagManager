@@ -47,4 +47,19 @@ final class ReviewSheetTests: XCTestCase {
         XCTAssertTrue(result.errors[0].contains("숫자"))
         XCTAssertTrue(result.errors[1].contains("알 수 없는 곡"))
     }
+
+    func testExportProtectsIDsAndFormulaLikeValues() throws {
+        // 숫자로만 된 ID는 엑셀이 숫자(지수 표기)로 바꿔 버린다 → 접두어로 문자열임을 지킨다
+        var risky = proposal(0x1234_5678_9012_3456)
+        risky.title = "=HYPERLINK(\"http://x\")"
+        let csv = ReviewSheet.export(proposals: [risky], tracks: [:])
+        let rows = CSV.decode(csv)
+        XCTAssertEqual(rows[1][0], "id:1234567890123456")
+        XCTAssertEqual(rows[1][8], "'=HYPERLINK(\"http://x\")", "수식으로 실행되지 않게 글자로 내보낸다")
+        // 그대로 다시 가져오면 바뀐 것이 없어야 한다
+        let result = ReviewSheet.parse(csv, proposals: [risky.persistentID: risky])
+        XCTAssertEqual(result.errors, [])
+        XCTAssertTrue(result.overrides.isEmpty)
+        XCTAssertEqual(result.unchanged, 1)
+    }
 }

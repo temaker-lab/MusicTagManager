@@ -32,6 +32,8 @@ public struct ArtworkPreparation: Sendable {
     public var prepared: PreparedArtwork?
     /// 쓰지 못한 후보와 이유 (예: "Cover Art Archive: 해상도가 낮습니다 (400×396)")
     public var failures: [String]
+    /// 네트워크가 끊겨 후보를 확인하지 못함 (적용 단계에서 작업을 멈추는 신호)
+    public var offline = false
 
     public var failureSummary: String { failures.joined(separator: "; ") }
 }
@@ -92,7 +94,7 @@ public final class ArtworkService: Sendable {
                 let line = "\(Self.sourceLabel(candidate)): \(reason)"
                 if !failures.contains(line) { failures.append(line) }
             case .offline:
-                return ArtworkPreparation(prepared: nil, failures: failures + [MTMLoc.t("art.fail.offline", "네트워크 연결 없음")])
+                return ArtworkPreparation(prepared: nil, failures: failures + [MTMLoc.t("art.fail.offline", "네트워크 연결 없음")], offline: true)
             }
         }
         if let fallback { return await finish(fallback.candidate, fallback.image, failures: failures) }
@@ -132,6 +134,9 @@ public final class ArtworkService: Sendable {
         } catch {
             Log.apply.info("커버 후보 제외 \(candidate, privacy: .public): \(error.localizedDescription, privacy: .public)")
             outcome = .unusable(Self.describe(error))
+            // 일시적 오류(시간 초과·서버 오류·취소 등)는 기억하지도 기록하지도 않는다 → 다음에 다시 확인한다.
+            // 기록해 버리면 멀쩡한 커버가 영구히 '쓸 수 없음'으로 남아 후보에서 빠진다.
+            guard Self.isPermanentFailure(error) else { return outcome }
             var size: (Int, Int)?
             if case ArtworkError.tooSmall(let w, let h) = error { size = (w, h) }
             if case ArtworkError.notSquare(let w, let h) = error { size = (w, h) }
@@ -195,20 +200,25 @@ public final class ArtworkService: Sendable {
         }
     }
 
-    /// 내려받은 원본은 기억해 두고 해상도 기준만 바꿔 다시 판정한다
+    /// 다시 시도해도 결과가 같은 실패인가 (이미지 아님·해상도·비율·없는 주소). 그 밖의 오류는 일시적인 것으로 본다.
+    static func isPermanentFailure(_ error: Error) -> Bool {
+        if error is ArtworkError { return true }
+        if case HTTPError.status(let code) = error { return (400..<500).contains(code) && code != 429 }
+        return false
+    }
+
+    /// 확정된 실패만 기억한다. 내려받은 원본은 보관하지 않는다 (판정 결과는 CheckMemo가 기억 → 메모리 절약)
     private func download(_ candidate: String) async throws -> Data {
         if let cached = await downloads.get(candidate) {
             guard let data = cached else { throw ArtworkError.unavailable }
             return data
         }
         do {
-            let data = try await fetch(candidate)
-            await downloads.set(candidate, data)
-            return data
+            return try await fetch(candidate)
         } catch let error as HTTPError where error == .offline {
             throw error
         } catch {
-            await downloads.set(candidate, nil)
+            if Self.isPermanentFailure(error) { await downloads.set(candidate, nil) }
             throw error
         }
     }
@@ -287,7 +297,11 @@ actor CheckMemo {
     private var values: [String: ArtworkService.CheckOutcome] = [:]
 
     func get(_ key: String) -> ArtworkService.CheckOutcome? { values[key] }
-    func set(_ key: String, _ value: ArtworkService.CheckOutcome) { values[key] = value }
+    /// 처리된 이미지 데이터를 담고 있으므로 개수를 제한한다 (같은 앨범의 곡은 연달아 처리되어 적중률은 유지된다)
+    func set(_ key: String, _ value: ArtworkService.CheckOutcome) {
+        if values.count >= 64 { values.removeAll() }
+        values[key] = value
+    }
 }
 
 /// 커버 후보 확인 결과 저장소 (적용 전 미리보기에서 쓸 수 없는 후보를 빼기 위함)

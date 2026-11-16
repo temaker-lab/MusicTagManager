@@ -288,10 +288,15 @@ struct AcoustIDResponse: Decodable {
 public enum FpcalcLocator {
     public static func locate() -> URL? {
         var candidates: [URL] = []
-        if let path = ProcessInfo.processInfo.environment["MTM_FPCALC"] { candidates.append(URL(fileURLWithPath: path)) }
+        // 배포된 앱(.app 번들)은 번들 안의 fpcalc만 쓴다. 환경 변수·현재 폴더는 개발용(`swift run`·CLI 도구)에서만 본다
+        // → 설치된 앱이 번들 밖의 임의 실행 파일을 실행하지 않게 한다.
+        let isAppBundle = Bundle.main.bundleURL.pathExtension == "app"
+        if !isAppBundle, let path = ProcessInfo.processInfo.environment["MTM_FPCALC"] { candidates.append(URL(fileURLWithPath: path)) }
         if let resources = Bundle.main.resourceURL { candidates.append(resources.appendingPathComponent("bin/fpcalc")) }
-        // 개발 중 `swift run`: 패키지 루트의 Resources/bin
-        candidates.append(URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Resources/bin/fpcalc"))
+        if !isAppBundle {
+            // 개발 중 `swift run`: 패키지 루트의 Resources/bin
+            candidates.append(URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Resources/bin/fpcalc"))
+        }
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
     }
 }
@@ -303,28 +308,54 @@ enum ProcessRunner {
         var errorDescription: String? { "외부 도구 실패 (\(status)): \(message)" }
     }
 
-    static func run(_ executable: URL, arguments: [String]) async throws -> Data {
-        try await withCheckedThrowingContinuation { continuation in
-            let process = Process()
-            process.executableURL = executable
-            process.arguments = arguments
-            let stdout = Pipe(), stderr = Pipe()
-            process.standardOutput = stdout
-            process.standardError = stderr
-            process.terminationHandler = { process in
-                let data = stdout.fileHandleForReading.readDataToEndOfFile()
-                if process.terminationStatus == 0 {
-                    continuation.resume(returning: data)
-                } else {
-                    let message = String(data: stderr.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-                    continuation.resume(throwing: Failure(status: process.terminationStatus, message: message))
+    /// 다른 스레드에서 채우는 출력 버퍼
+    private final class OutputBox: @unchecked Sendable {
+        var data = Data()
+    }
+
+    /// 외부 도구를 실행해 표준 출력을 돌려준다.
+    /// - 출력은 실행 중에 계속 읽는다: 끝난 뒤에 읽으면 출력이 파이프 버퍼(64KB)를 넘을 때 도구가 멈춰 영원히 끝나지 않는다
+    ///   (손상된 파일에서 디코더 경고가 쏟아지는 경우).
+    /// - `timeout`이 지나거나 작업(Task)이 취소되면 도구를 종료한다.
+    static func run(_ executable: URL, arguments: [String], timeout: TimeInterval = 60) async throws -> Data {
+        let process = Process()
+        process.executableURL = executable
+        process.arguments = arguments
+        let stdout = Pipe(), stderr = Pipe()
+        process.standardOutput = stdout
+        process.standardError = stderr
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
+                DispatchQueue.global(qos: .utility).async {
+                    do {
+                        try process.run()
+                    } catch {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    let watchdog = DispatchWorkItem { if process.isRunning { process.terminate() } }
+                    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + timeout, execute: watchdog)
+                    let errorBox = OutputBox()
+                    let errorDone = DispatchGroup()
+                    errorDone.enter()
+                    DispatchQueue.global(qos: .utility).async {
+                        errorBox.data = stderr.fileHandleForReading.readDataToEndOfFile()
+                        errorDone.leave()
+                    }
+                    let data = stdout.fileHandleForReading.readDataToEndOfFile()
+                    errorDone.wait()
+                    process.waitUntilExit()
+                    watchdog.cancel()
+                    if process.terminationStatus == 0 {
+                        continuation.resume(returning: data)
+                    } else {
+                        let message = String(data: errorBox.data.prefix(2_000), encoding: .utf8) ?? ""
+                        continuation.resume(throwing: Failure(status: process.terminationStatus, message: message))
+                    }
                 }
             }
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: error)
-            }
+        } onCancel: {
+            if process.isRunning { process.terminate() }
         }
     }
 }

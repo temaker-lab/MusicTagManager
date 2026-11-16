@@ -205,6 +205,8 @@ public final class ApplyService: Sendable {
         let all = try database.applyResults(jobID: jobID)
         let open = all.filter { $0.state.isOpen }
         var done = all.count - open.count
+        // 안전장치는 어떤 곡도 건드리기 전에 확인한다 (막히면 상태 변화 없이 작업을 멈춘다)
+        if !open.isEmpty, !Task.isCancelled { try await writer.ensureWritable() }
         for item in open {
             // 일시정지: 남은 곡은 '대기'로 두고 멈춘다 (다음에 이어서 실행)
             if Task.isCancelled { break }
@@ -212,6 +214,9 @@ public final class ApplyService: Sendable {
             let outcome: (state: ApplyState, message: String?)
             do {
                 outcome = try await process(item, jobID: jobID)
+            } catch is CancellationError {
+                // 사용자가 중지함: 이 곡은 그대로 두고 멈춘다 (다음에 이어서 실행)
+                break
             } catch let error as WriteError {
                 throw error
             } catch let error as HTTPError where error == .offline {
@@ -239,7 +244,9 @@ public final class ApplyService: Sendable {
         // 강제 종료로 '쓰는 중'에 멈춘 곡: 기록해 둔 같은 변경을 다시 적용 (같은 값을 다시 쓰므로 안전)
         if item.state == .writing, let change = item.change {
             guard let snapshot = try snapshots.load(jobID: jobID, id: id) else { return (.failed, MTMLoc.t("apply.err.noSnapshot", "스냅샷 없음")) }
-            try await writer.apply(change, snapshot: snapshot)
+            if let partial = try await applyOrPartial(change, snapshot: snapshot, id: id) {
+                return (.verifyFailed, partial)
+            }
             let result = try await verify(id, change: change, before: snapshot.before)
             try afterWrite(item, jobID: jobID, state: result.state)
             return result
@@ -270,6 +277,8 @@ public final class ApplyService: Sendable {
                                                              caseSensitive: isOverride)
             if wantsArtwork {
                 let preparation = await artwork.prepareWithReport(candidates)
+                // 오프라인이면 커버만 빠진 채 적용되지 않게 작업을 멈춘다 (아직 아무것도 쓰지 않은 시점)
+                if preparation.offline { throw HTTPError.offline }
                 if let prepared = preparation.prepared {
                     planned.artwork = .set(path: prepared.file.path, source: prepared.source)
                     if prepared.width < 600 { artworkNote = MTMLoc.f("apply.note.lowResUsed", "저해상도 커버 사용 (%d×%d)", prepared.width, prepared.height) }
@@ -311,12 +320,36 @@ public final class ApplyService: Sendable {
         }
 
         let snapshot = try await snapshots.capture(jobID: jobID, id: id, current: current, change: change)
-        try await writer.apply(change, snapshot: snapshot)
+        if let partial = try await applyOrPartial(change, snapshot: snapshot, id: id) {
+            // 되돌리기 작업이면 원본 항목을 '되돌림'으로 표시하지 않는다 → 다시 되돌리기를 시도할 수 있다
+            return (.verifyFailed, partial)
+        }
         let result = try await verify(id, change: change, before: current)
         try afterWrite(item, jobID: jobID, state: result.state)
         // 다른 필드는 썼지만 커버를 못 넣은 경우 이유를 남긴다
         let message = [result.message, artworkNote].compactMap { $0 }.joined(separator: " · ")
         return (result.state, message.isEmpty ? nil : message)
+    }
+
+    /// 스냅샷을 남긴 뒤의 쓰기. 텍스트는 썼는데 커버 쓰기가 실패하는 것처럼 도중에 오류가 나면,
+    /// 곡이 실제로 바뀌었는지 다시 읽어 확인한다. 바뀐 게 있으면 사유를 돌려주고(호출부가 '검증 실패'로 기록 →
+    /// 작업 이력에서 되돌릴 수 있다), 아무것도 바뀌지 않았으면 오류를 그대로 던진다(기존처럼 '실패').
+    private func applyOrPartial(_ change: TrackChange, snapshot: Snapshot, id: PersistentID) async throws -> String? {
+        do {
+            try await writer.apply(change, snapshot: snapshot)
+            return nil
+        } catch let error as WriteError {
+            throw error
+        } catch let error as MusicScriptError where error.number == -1743 {
+            throw error
+        } catch {
+            if var after = try? await music.readTracks([id])[id] {
+                after.location = snapshot.before.location
+                if after == snapshot.before { throw error }
+            }
+            Log.apply.error("부분 적용 \(id.hex, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            return MTMLoc.f("apply.err.partial", "일부만 적용되었습니다 (작업 이력에서 되돌릴 수 있음): %@", error.localizedDescription)
+        }
     }
 
     /// 다시 읽어 최종값과 비교한다. 파일 위치가 바뀌었으면(미디어 폴더 정리) 기록도 갱신한다.

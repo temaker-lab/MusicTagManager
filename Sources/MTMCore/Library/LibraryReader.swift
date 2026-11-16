@@ -15,7 +15,7 @@ public enum LibraryReaderError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .unavailable(let error):
-            return "Music 보관함을 읽을 수 없습니다. 시스템 설정 > 개인정보 보호 및 보안 > 미디어 및 Apple Music에서 이 앱을 허용했는지 확인하세요. (\(error.localizedDescription))"
+            return MTMLoc.f("library.err.unavailable", "Music 보관함을 읽을 수 없습니다. 시스템 설정 > 개인정보 보호 및 보안 > 미디어 및 Apple Music에서 이 앱을 허용했는지 확인하세요. (%@)", error.localizedDescription)
         }
     }
 }
@@ -23,8 +23,8 @@ public enum LibraryReaderError: LocalizedError {
 /// ITLibrary 래퍼. 읽기 전용이며 Music 앱에 Apple Event를 보내지 않는다.
 public actor LibraryReader: LibrarySource {
     /// 곡 정보를 읽거나 판정하는 방식이 바뀌면 올린다 → 저장된 검사 결과를 한 번 전부 다시 판정
-    /// (2: 커버 유무에 artwork 객체 확인, 3: 플레이스홀더 변형 인식)
-    public static let trackFormatVersion = 3
+    /// (2: 커버 유무에 artwork 객체 확인, 3: 플레이스홀더 변형 인식, 4: DRM 보호 여부 저장)
+    public static let trackFormatVersion = 4
 
     private var library: ITLibrary?
     private var itemsByID: [PersistentID: ITLibMediaItem] = [:]
@@ -62,6 +62,13 @@ public actor LibraryReader: LibrarySource {
 
     public func tracks(for ids: [PersistentID]) async -> [LibraryTrack] {
         ids.compactMap { id in itemsByID[id].map { Self.makeTrack($0, id: id) } }
+    }
+
+    /// 음원 파일 정보 (비트레이트·샘플레이트·형식·용량). 마지막으로 읽은 보관함에 없는 곡이면 nil
+    public func fileDetails(for id: PersistentID) -> TrackFileDetails? {
+        guard let item = itemsByID[id] else { return nil }
+        return TrackFileDetails(bitrateKbps: Int(item.bitrate), sampleRate: Int(item.sampleRate), kind: item.kind,
+                                fileSize: Int64(item.fileSize))
     }
 
     public func modificationDates(for ids: [PersistentID]) async -> [PersistentID: Date] {

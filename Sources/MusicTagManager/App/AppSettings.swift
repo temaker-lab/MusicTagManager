@@ -11,7 +11,11 @@ struct AppSettings: Codable, Equatable {
     var rules = CompletenessRules()
     var identification = IdentificationSettings()
     /// MusicBrainz User-Agent 연락처 (MusicBrainz 이용 규칙상 필수)
-    var musicBrainzContact = "rnap.00@gmail.com"
+    /// 개인 이메일 대신 프로젝트 주소를 쓴다 (모든 사용자의 요청 헤더에 실리는 값)
+    var musicBrainzContact = AppSettings.defaultMusicBrainzContact
+    static let defaultMusicBrainzContact = "https://github.com/temaker-lab/MusicTagManager"
+    /// 예전 버전이 기본값으로 저장해 둔 연락처 (새 기본값으로 바꿔 준다)
+    private static let legacyMusicBrainzContacts: Set<String> = ["rnap.00@gmail.com"]
     var writePolicies = WritePolicies()
     /// 쓰기 전에 원본 음악 파일 전체를 백업 (기본 꺼짐: 메타데이터 스냅샷으로 되돌리기 가능)
     var fullFileBackup = false
@@ -21,8 +25,9 @@ struct AppSettings: Codable, Equatable {
     var allowLowResolutionArtwork = true
     /// 되돌리기용 스냅샷 보존 기간(일). 이보다 오래된 스냅샷과 백업 파일은 자동 정리한다. 0 = 무제한 보관.
     var snapshotRetentionDays = 30
-    /// 개발용 안전장치: 곡이 이보다 많은 보관함(메인 보관함)에는 쓰지 않는다
-    var writeGuardEnabled = true
+    /// 안전장치(선택): 곡이 이보다 많은 보관함(메인 보관함)에는 쓰지 않는다.
+    /// 배포판 기본값은 꺼짐 — 켜 두면 곡이 3,000개를 넘는 보관함에서는 적용이 전혀 되지 않는다.
+    var writeGuardEnabled = false
     static let writeGuardLimit = 3_000
 
     init() {}
@@ -42,6 +47,7 @@ struct AppSettings: Codable, Equatable {
             rules.artistPlaceholders = defaults.rules.artistPlaceholders
         }
         musicBrainzContact = try c.decodeIfPresent(String.self, forKey: .musicBrainzContact) ?? defaults.musicBrainzContact
+        if Self.legacyMusicBrainzContacts.contains(musicBrainzContact) { musicBrainzContact = defaults.musicBrainzContact }
         writePolicies = (try? c.decodeIfPresent(WritePolicies.self, forKey: .writePolicies)) ?? defaults.writePolicies
         writeGuardEnabled = try c.decodeIfPresent(Bool.self, forKey: .writeGuardEnabled) ?? defaults.writeGuardEnabled
         allowLowResolutionArtwork = try c.decodeIfPresent(Bool.self, forKey: .allowLowResolutionArtwork) ?? defaults.allowLowResolutionArtwork

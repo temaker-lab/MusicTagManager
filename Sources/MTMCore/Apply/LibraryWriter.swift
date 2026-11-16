@@ -22,9 +22,9 @@ public enum WriteError: LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
-        case .snapshotMismatch: return "스냅샷과 대상 곡이 다릅니다"
+        case .snapshotMismatch: return MTMLoc.t("write.err.snapshotMismatch", "스냅샷과 대상 곡이 다릅니다")
         case .guardBlocked(let count, let limit):
-            return "안전장치: 현재 보관함 곡 \(count)개가 한도 \(limit)개를 넘어 쓰기를 멈췄습니다 (설정 > 일반에서 해제)"
+            return MTMLoc.f("write.err.guardBlocked", "안전장치: 현재 보관함 곡 %d개가 한도 %d개를 넘어 쓰기를 멈췄습니다 (설정 > 일반에서 해제)", count, limit)
         }
     }
 }
@@ -57,6 +57,23 @@ public actor LibraryWriter {
         case nil:
             break
         }
+    }
+
+    /// 곡을 Music 보관함에서 삭제한다 (모든 플레이리스트에서 함께 빠진다). 파일은 건드리지 않는다 — 파일 처리는 호출부 몫.
+    /// 되돌릴 수 없는 동작이라 재시도하지 않는다. 응답이 늦어 오류가 났어도 실제로 지워졌으면 성공으로 본다.
+    public func deleteTrack(_ id: PersistentID) async throws {
+        try await checkGuard()
+        do {
+            try await music.deleteTrack(id)
+        } catch {
+            if let remaining = try? await music.readTracks([id]), remaining[id] == nil { return }
+            throw error
+        }
+    }
+
+    /// 작업을 시작하기 전에 안전장치를 미리 확인한다 (막히면 어떤 곡도 '쓰는 중'으로 바꾸지 않고 멈춘다)
+    public func ensureWritable() async throws {
+        try await checkGuard()
     }
 
     /// 보관함을 바꿨을 수 있으므로 1분마다 다시 확인

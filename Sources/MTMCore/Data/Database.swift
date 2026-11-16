@@ -157,7 +157,33 @@ public final class AppDatabase: Sendable {
                 t.column("recorded_at", .datetime).notNull()
             }
         }
+        migrator.registerMigration("v8_track_drm") { db in
+            // DRM 보호 여부를 저장해, 저장값으로 복원한 곡도 지문 생성을 헛되이 시도하지 않게 한다
+            try db.alter(table: "tracks") { t in
+                t.add(column: "is_drm_protected", .boolean).notNull().defaults(to: false)
+            }
+        }
         return migrator
+    }
+
+    // MARK: - 곡 삭제
+
+    /// Music에서 삭제한 곡의 검사 기록·제안·커버 상태를 지운다 (작업 이력은 기록으로 남긴다)
+    public func removeTrack(_ id: PersistentID) throws {
+        try writer.write { db in
+            for table in ["tracks", "playlist_tracks", "proposals", "artwork_truth"] {
+                try db.execute(sql: "DELETE FROM \(table) WHERE persistent_id = ?", arguments: [id.hex])
+            }
+        }
+    }
+
+    // MARK: - 응답 캐시 정리
+
+    /// 유효 기간이 지난 외부 API 응답을 지운다 (읽을 때 나이를 확인하지만 행은 남아 DB가 계속 커진다)
+    public func pruneAPICache(olderThan cutoff: Date) throws {
+        try writer.write { db in
+            try db.execute(sql: "DELETE FROM api_cache WHERE fetched_at < ?", arguments: [cutoff])
+        }
     }
 
     // MARK: - 대상 플레이리스트

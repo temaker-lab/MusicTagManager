@@ -12,6 +12,8 @@ public protocol MusicScripting: Sendable {
     /// 커버 1번의 원본 바이트 (없으면 nil)
     func artworkData(of id: PersistentID) async throws -> Data?
     func libraryTrackCount() async throws -> Int
+    /// 곡을 보관함에서 삭제한다 (모든 플레이리스트에서 빠진다). 파일은 건드리지 않는다.
+    func deleteTrack(_ id: PersistentID) async throws
 }
 
 public struct MusicScriptError: LocalizedError, Equatable {
@@ -20,10 +22,10 @@ public struct MusicScriptError: LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch number {
-        case -1743: return "Music 앱 제어 권한이 없습니다 (시스템 설정 > 개인정보 보호 및 보안 > 자동화)"
-        case -1728: return "Music 보관함에서 곡을 찾을 수 없습니다"
-        case -1712: return "Music 앱이 응답하지 않습니다 (시간 초과)"
-        default: return "Music 앱 오류 \(number): \(message)"
+        case -1743: return MTMLoc.t("music.err.noPermission", "Music 앱 제어 권한이 없습니다 (시스템 설정 > 개인정보 보호 및 보안 > 자동화)")
+        case -1728: return MTMLoc.t("music.err.notFound", "Music 보관함에서 곡을 찾을 수 없습니다")
+        case -1712: return MTMLoc.t("music.err.timeout", "Music 앱이 응답하지 않습니다 (시간 초과)")
+        default: return MTMLoc.f("music.err.other", "Music 앱 오류 %d: %@", number, message)
         }
     }
 
@@ -164,6 +166,16 @@ public final class AppleScriptMusic: MusicScripting {
 
     public func libraryTrackCount() async throws -> Int {
         try await runner.run("tell application \"Music\" to count tracks of library playlist 1") { Int($0.int32Value) }
+    }
+
+    public func deleteTrack(_ id: PersistentID) async throws {
+        try await runVoid("""
+        tell application "Music"
+          with timeout of 30 seconds
+            delete \(Self.ref(id))
+          end timeout
+        end tell
+        """)
     }
 
     private func runVoid(_ source: String) async throws {

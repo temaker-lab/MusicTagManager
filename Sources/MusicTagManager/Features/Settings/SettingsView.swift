@@ -36,7 +36,7 @@ private struct PlaylistSettingsTab: View {
                     Button(L("common.applyRescan")) {
                         if state.hasHistory { confirmReset = true } else { Task { await model.apply() } }
                     }
-                    .disabled(!model.hasSelection || !model.isDirty)
+                    .disabled(!model.hasSelection || !model.isDirty || state.isBusy)
                 }
             }
         }
@@ -77,7 +77,7 @@ private struct RulesSettingsTab: View {
                     Button(L("common.defaults")) { rules = CompletenessRules() }
                     Spacer()
                     Button(L("common.applyRescan")) { Task { await state.updateRules(rules) } }
-                        .disabled(rules == state.settings.rules)
+                        .disabled(rules == state.settings.rules || state.isBusy)
                 }
             }
         }
@@ -210,6 +210,8 @@ private struct WritePolicySettingsTab: View {
 private struct GeneralSettingsTab: View {
     @Environment(AppState.self) private var state
     @State private var showOnboarding = false
+    /// 원본 파일 백업 용량 (폴더를 훑는 일이라 화면을 그릴 때마다 계산하지 않고 탭을 열 때 한 번만)
+    @State private var backupSize: Int64 = 0
 
     var body: some View {
         @Bindable var state = state
@@ -244,7 +246,7 @@ private struct GeneralSettingsTab: View {
                 Text(L("settings.general.writeGuardNote"))
                     .font(.caption).foregroundStyle(.secondary)
                 Toggle(L("settings.general.fullBackup"), isOn: $state.settings.fullFileBackup)
-                Text(Lf("settings.general.fullBackupNote", ByteCountFormatter.string(fromByteCount: state.fileBackupSize(), countStyle: .file)))
+                Text(Lf("settings.general.fullBackupNote", ByteCountFormatter.string(fromByteCount: backupSize, countStyle: .file)))
                     .font(.caption).foregroundStyle(.secondary)
                 Picker(L("settings.general.snapshotRetention"), selection: $state.settings.snapshotRetentionDays) {
                     Text(L("retention.7")).tag(7)
@@ -265,6 +267,7 @@ private struct GeneralSettingsTab: View {
             }
         }
         .formStyle(.grouped)
+        .task { backupSize = state.fileBackupSize() }
         .sheet(isPresented: $showOnboarding) {
             OnboardingView(mode: .replay) { showOnboarding = false }
                 .environment(state)

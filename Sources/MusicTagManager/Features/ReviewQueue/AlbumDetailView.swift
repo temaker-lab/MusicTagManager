@@ -73,7 +73,7 @@ struct AlbumDetailView: View {
                     Task { await state.apply(ids) }
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(!rows.contains(where: \.isApplicable) || state.isApplying)
+                .disabled(!rows.contains(where: \.isApplicable) || state.isBusy)
             }
         }
         .padding(20)

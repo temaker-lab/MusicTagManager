@@ -24,6 +24,10 @@ mkdir -p "$APP/Contents/Resources/bin"
 cp Resources/bin/fpcalc "$APP/Contents/Resources/bin/fpcalc"
 # 온보딩 '사용 방법'에 보여줄 실제 앱 화면 스크린샷
 cp -R Resources/Onboarding "$APP/Contents/Resources/Onboarding"
+# 권한 요청 창 문구 지역화 (en.lproj·ko.lproj의 InfoPlist.strings)
+for lproj in Resources/en.lproj Resources/ko.lproj; do
+  if [ -d "$lproj" ]; then cp -R "$lproj" "$APP/Contents/Resources/"; fi
+done
 
 # --- Sparkle.framework 임베드 (자동 업데이트) ---
 SPARKLE_FW=""

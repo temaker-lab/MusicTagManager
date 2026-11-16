@@ -83,9 +83,10 @@ public final class IdentificationService: Sendable {
         let totalTracks = groups.reduce(0) { $0 + $1.targets.count }
         progress(IdentificationProgress(completedTracks: 0, totalTracks: totalTracks, currentLabel: ""))
         let builder = ProposalBuilder(settings: settings)
-        func save(_ group: IdentificationGroup, _ resolution: GroupResolution) throws {
+        func save(_ group: IdentificationGroup, _ resolution: GroupResolution, counting: Bool = true) throws {
             let (album, proposals) = builder.build(group: group, resolution: resolution)
             try database.saveIdentification(album: album, albumGroupKey: group.key, proposals: proposals)
+            guard counting else { return }
             summary.tracks += proposals.count
             for proposal in proposals {
                 summary.levels[proposal.confidenceLevel, default: 0] += 1
@@ -122,6 +123,9 @@ public final class IdentificationService: Sendable {
                 completedTracks += group.targets.count
                 if group.isSingle {
                     singles.append((group, resolution))
+                    // 단독 곡도 끝나는 대로 저장해 둔다 (중지·오프라인·앱 종료로 끊겨도 결과가 남는다).
+                    // 모두 끝나면 같은 앨범끼리 정리한 결과로 한 번 더 덮어쓴다 (집계는 그때 한다).
+                    try save(group, resolution, counting: false)
                 } else {
                     try save(group, resolution)
                 }

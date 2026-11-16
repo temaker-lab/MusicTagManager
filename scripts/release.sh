@@ -60,8 +60,13 @@ cp -f "dist/MusicTagManager-$VERSION.dmg" "$DMG"
 
 # 6) 사람이 받는 '최신(latest)' 릴리스: v$VERSION 태그로 DMG 업로드(덮어쓰기).
 #    웹사이트의 .../releases/latest/download/MusicTagManager.dmg 가 항상 최신을 가리킨다.
+#    docs/release-notes/<버전>.md 가 있으면 릴리스 설명으로 쓴다.
+NOTES_FILE="docs/release-notes/$VERSION.md"
 if gh release view "v$VERSION" --repo "$REPO" >/dev/null 2>&1; then
   gh release upload "v$VERSION" "$DMG" --repo "$REPO" --clobber
+  [ -f "$NOTES_FILE" ] && gh release edit "v$VERSION" --repo "$REPO" --notes-file "$NOTES_FILE"
+elif [ -f "$NOTES_FILE" ]; then
+  gh release create "v$VERSION" "$DMG" --repo "$REPO" --title "v$VERSION" --notes-file "$NOTES_FILE" --latest
 else
   gh release create "v$VERSION" "$DMG" --repo "$REPO" --title "v$VERSION" \
     --notes "MusicTag Manager v$VERSION" --latest

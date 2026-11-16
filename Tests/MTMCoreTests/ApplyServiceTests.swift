@@ -452,4 +452,52 @@ final class ApplyServiceTests: XCTestCase {
         try await service.run(jobID: try XCTUnwrap(try service.createUndoJob(.job(jobID))))
         XCTAssertEqual(music.artworkList(pid(2)), [originalArtwork], "백업해 둔 원래 커버로 복원")
     }
+
+    func testPartialWriteIsRecordedAsUndoable() async throws {
+        // 텍스트는 썼는데 커버 쓰기가 실패한 곡: '실패'로 남기면 되돌릴 수 없으므로 '검증 실패'로 남겨야 한다
+        music.failBefore = { op, id in op == .setArtwork && id == pid(1) ? MusicScriptError(number: -50, message: "x") : nil }
+        let service = makeService()
+        let jobID = try await createJob(service, [pid(1)])
+        let summary = try await service.run(jobID: jobID)
+        XCTAssertEqual(summary.verifyFailed, 1)
+        XCTAssertEqual(summary.failed, 0)
+        XCTAssertEqual(try result(jobID, pid(1)).state, .verifyFailed)
+        XCTAssertEqual(music.fields(pid(1))?.artist, "아이유", "텍스트는 이미 바뀌었다")
+
+        let undoID = try XCTUnwrap(try service.createUndoJob(.job(jobID)), "부분 적용도 되돌릴 수 있어야 한다")
+        try await service.run(jobID: undoID)
+        XCTAssertEqual(music.fields(pid(1))?.artist, "", "원래 값으로 복원")
+    }
+
+    func testDeleteTrackRemovesFromLibraryAndToleratesLateError() async throws {
+        let writer = LibraryWriter(music: music, maxLibraryTracks: nil, retryDelay: 0)
+        try await writer.deleteTrack(pid(1))
+        XCTAssertNil(music.fields(pid(1)))
+
+        // 지워진 뒤에 오류가 돌아와도(응답 지연) 성공으로 본다
+        music.failAfter = { op, id in op == .deleteTrack && id == pid(2) ? MusicScriptError(number: -1712, message: "late") : nil }
+        try await writer.deleteTrack(pid(2))
+        XCTAssertNil(music.fields(pid(2)))
+        music.failAfter = nil
+
+        // 지우지 못했으면 오류를 던지고 곡은 그대로 남는다 (호출부는 파일을 지우지 않는다)
+        music.failBefore = { op, _ in op == .deleteTrack ? MusicScriptError(number: -10000, message: "x") : nil }
+        do {
+            try await writer.deleteTrack(pid(3))
+            XCTFail("삭제 실패는 오류로 알려야 한다")
+        } catch {}
+        XCTAssertNotNil(music.fields(pid(3)))
+    }
+
+    func testDeleteTrackRespectsSafetyGuard() async throws {
+        music.libraryCount = 8_042
+        let writer = LibraryWriter(music: music, maxLibraryTracks: 3_000, retryDelay: 0)
+        do {
+            try await writer.deleteTrack(pid(1))
+            XCTFail("안전장치가 막아야 함")
+        } catch {
+            XCTAssertEqual(error as? WriteError, .guardBlocked(libraryTracks: 8_042, limit: 3_000))
+        }
+        XCTAssertNotNil(music.fields(pid(1)))
+    }
 }

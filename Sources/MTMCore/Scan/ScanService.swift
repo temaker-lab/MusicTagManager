@@ -218,6 +218,22 @@ public final class ScanService: Sendable {
 }
 
 extension ScanOutcome {
+    /// 방금 Music에서 삭제한 곡을 검사 결과에서 뺀다.
+    /// 보관함 읽기(ITLibrary)가 삭제를 늦게 반영해도 곡 목록과 집계에 다시 나타나지 않게 한다.
+    public func removing(_ ids: Set<PersistentID>) -> ScanOutcome {
+        guard !ids.isEmpty else { return self }
+        let kept = tracks.filter { !ids.contains($0.id) }
+        guard kept.count != tracks.count else { return self }
+        var stats = ScanStats()
+        stats.duplicatesRemoved = self.stats.duplicatesRemoved
+        stats.rechecked = self.stats.rechecked
+        stats.reused = self.stats.reused
+        for track in kept { stats.add(track.result) }
+        stats.scopeTotal = kept.count
+        return ScanOutcome(selection: selection, removedPlaylistNames: removedPlaylistNames, tracks: kept, stats: stats,
+                           duration: duration, timings: timings, finishedAt: finishedAt)
+    }
+
     /// 앱에서 적용을 마친(검증된) 변경을 검사 결과에 반영한다.
     /// 보관함 읽기(ITLibrary)가 Music의 변경을 늦게 보여 줘도 대시보드 현황이 적용 결과대로 바로 바뀌게 한다.
     /// 적용 뒤 사용자가 Music에서 곡을 다시 고쳤으면(수정 시각이 더 늦음) 보관함 값을 그대로 쓴다.

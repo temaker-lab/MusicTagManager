@@ -239,6 +239,96 @@ struct NeutralActionButtonStyle: ButtonStyle {
     }
 }
 
+/// 캡슐 탭 묶음의 탭 하나
+struct CapsuleTab<ID: Hashable>: Identifiable {
+    let id: ID
+    let title: String
+}
+
+/// 여러 탭을 하나의 캡슐 안에 담은 탭 묶음 (메인 창·설정 창 상단 공용). 선택된 탭만 밝게, 나머지는 흐리게 보인다.
+struct CapsuleTabBar<ID: Hashable>: View {
+    @Environment(\.palette) private var palette
+    let tabs: [CapsuleTab<ID>]
+    @Binding var selection: ID
+    /// 시스템 회색 톤으로 그린다 (설정 창처럼 팔레트 배경을 쓰지 않는 창)
+    var neutral = false
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(tabs) { tab in
+                let selected = tab.id == selection
+                Button {
+                    selection = tab.id
+                } label: {
+                    Text(tab.title)
+                        .font(.body.weight(selected ? .semibold : .regular))
+                        .foregroundStyle(textColor(selected))
+                        .lineLimit(1)
+                        .fixedSize()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background {
+                            if selected { Capsule().fill(selectedFill) }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(3)
+        .background(Capsule().fill(containerFill))
+        .overlay(Capsule().strokeBorder(borderColor))
+        .animation(.easeInOut(duration: 0.15), value: selection)
+    }
+
+    private var containerFill: Color { neutral ? Color.primary.opacity(0.06) : palette.card }
+    private var borderColor: Color { neutral ? Color.primary.opacity(0.12) : palette.cardBorder }
+    private var selectedFill: Color { neutral ? Color.primary.opacity(0.14) : palette.accent.opacity(0.14) }
+
+    private func textColor(_ selected: Bool) -> Color {
+        if neutral { return selected ? Color.primary : Color.secondary }
+        return selected ? palette.accent : palette.secondaryText
+    }
+}
+
+/// 창 제목 표시줄을 '툴바가 있는 창' 높이(약 52pt)로 키운다.
+/// 빈 툴바를 달면 macOS가 닫기·최소화·확대 버튼을 그 높이의 세로 가운데로 내려 주므로,
+/// 제목 표시줄 줄에 올린 탭 묶음과 버튼의 세로 위치가 맞고 위쪽에도 여유가 생긴다.
+struct TallTitlebar: NSViewRepresentable {
+    /// 제목 표시줄이 따로 있는 창(설정 창)이면 콘텐츠를 제목 표시줄 아래까지 확장하고 제목 글자를 숨긴다
+    var extendsContent = false
+
+    /// 이 높이 안에서 탭 묶음을 세로 가운데에 두려면 위 여백을 이만큼 준다 (탭 묶음 높이 약 34pt)
+    static let tabBarTopPadding: CGFloat = 9
+
+    func makeNSView(context: Context) -> NSView {
+        let view = Probe()
+        view.extendsContent = extendsContent
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class Probe: NSView {
+        var extendsContent = false
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard let window else { return }
+            if window.toolbar == nil {
+                window.toolbar = NSToolbar(identifier: "tall-titlebar")
+            }
+            window.toolbarStyle = .unified
+            window.titleVisibility = .hidden
+            window.titlebarSeparatorStyle = .none
+            if extendsContent {
+                window.styleMask.insert(.fullSizeContentView)
+                window.titlebarAppearsTransparent = true
+            }
+        }
+    }
+}
+
 /// 상단 오른쪽 테마 전환 (달 · 반쪽 · 해)
 struct AppearanceSwitcher: View {
     @Environment(AppState.self) private var state

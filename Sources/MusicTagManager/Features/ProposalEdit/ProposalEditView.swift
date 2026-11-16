@@ -52,6 +52,8 @@ struct ProposalEditView: View {
             }
 
             // 중앙 콘텐츠 (상단 정렬, 남는 세로 공간을 모두 차지 → 내용이 줄어도 중앙으로 몰리지 않음)
+            // 작은 화면에서는 시트 높이가 줄어들므로 스크롤할 수 있게 감싼다 (하단 버튼은 항상 보인다)
+            ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 // 섹션 간격을 직접 제어하려고 grouped Form 대신 커스텀 카드로 구성 (섹션 사이 14pt)
                 VStack(spacing: 14) {
@@ -103,6 +105,8 @@ struct ProposalEditView: View {
                 }
             }
             .padding(.top, 16)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             // 하단 액션 (고정)
@@ -134,7 +138,7 @@ struct ProposalEditView: View {
                         .buttonStyle(NeutralActionButtonStyle())
                     Button(L("edit.saveApply")) { save(applyNow: true) }
                         .keyboardShortcut(.defaultAction)
-                        .disabled(!values.invalidNumbers.isEmpty || isSaving || state.isApplying || !hasChanges)
+                        .disabled(!values.invalidNumbers.isEmpty || isSaving || state.isBusy || !hasChanges)
                 }
             }
             .padding(.top, 12)
@@ -142,7 +146,9 @@ struct ProposalEditView: View {
         .padding(20)
         // 높이 고정: 콘텐츠 상태가 바뀌어도 팝업 크기는 그대로. 곡 정보 1줄 고정 + '선택 취소' 오른쪽 이동으로
         // 가장 긴 상태가 줄어 770으로 축소. (모든 섹션 + 재식별 결과/실패 사유 박스 + 안내문 + 버튼이 들어감)
-        .frame(width: 580, height: 770)
+        // 시트는 메인 창의 제목 표시줄 아래(약 63pt)에서 시작한다. 창이 작으면 시트가 창 아래로 삐져나오므로
+        // 창 높이에 맞춰 줄인다 (본문은 스크롤, 하단 버튼은 항상 보임). 창을 모르면 화면 높이를 기준으로 한다.
+        .frame(width: 580, height: sheetHeight)
         .onAppear {
             let loaded = state.editableValues(for: id)
             values = loaded
@@ -166,6 +172,14 @@ struct ProposalEditView: View {
         } message: {
             Text(L("edit.preview.unavailableMsg"))
         }
+    }
+
+    /// 시트 높이: 내용 전체가 들어가는 770pt를 넘지 않되, 메인 창 안에 들어가도록 줄인다.
+    /// (창 높이 − 제목 표시줄 아래 시작 위치 63pt − 아래 여백 17pt)
+    @MainActor private var sheetHeight: CGFloat {
+        let available = NSApp.mainWindow.map { $0.frame.height - 80 }
+            ?? (NSScreen.main?.visibleFrame.height ?? 900) - 60
+        return min(770, max(480, available))
     }
 
     /// 미리 듣기 버튼: 재생 중이면 일시정지 아이콘으로 바뀐다. 재생할 파일이 없으면 안내 알림을 띄운다.
@@ -263,7 +277,7 @@ struct ProposalEditView: View {
                             dismiss()
                         }
                     }
-                    .disabled(!row.isApplicable || state.isApplying)
+                    .disabled(!row.isApplicable || state.isBusy)
                     .help(row.isApplicable ? Lf("edit.applyResult.help", row.writesText) : row.writesText)
                 }
             }

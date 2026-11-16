@@ -1,0 +1,3 @@
+/* Text shown in the permission prompts (English) */
+"NSAppleEventsUsageDescription" = "MusicTag Manager controls the Music app to fill in missing track info and album artwork, and to read the values back to verify each change.";
+"NSAppleMusicUsageDescription" = "MusicTag Manager reads track info from the playlists you choose in your Music library to find what is missing.";

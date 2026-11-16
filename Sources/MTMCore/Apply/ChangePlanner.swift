@@ -2,6 +2,23 @@ import Foundation
 
 /// 제안값 + Music의 현재 값 + 필드별 정책 → 실제로 쓸 변경
 public enum ChangePlanner {
+    /// 규칙별 판정기 재사용 (판정기를 만들 때마다 정규식을 컴파일하므로, 곡마다 새로 만들면 목록 갱신이 느려진다)
+    private final class CheckerCache: @unchecked Sendable {
+        private let lock = NSLock()
+        private var cached: CompletenessChecker?
+
+        func checker(for rules: CompletenessRules) -> CompletenessChecker {
+            lock.lock()
+            defer { lock.unlock() }
+            if let cached, cached.rules == rules { return cached }
+            let checker = CompletenessChecker(rules: rules)
+            cached = checker
+            return checker
+        }
+    }
+
+    private static let checkers = CheckerCache()
+
     public static let textFields: [ProposalField] = [.title, .artist, .album, .albumArtist, .genre]
     public static let numberFields: [ProposalField] = [.year, .trackNumber, .trackCount, .discNumber, .discCount]
 
@@ -12,7 +29,7 @@ public enum ChangePlanner {
                             id: PersistentID, rules: CompletenessRules, policies: WritePolicies,
                             caseSensitive: Bool = false) -> (change: TrackChange, wantsArtwork: Bool) {
         // 필수 3개 텍스트 항목은 완비 판정과 같은 기준(플레이스홀더 = 빈 값)으로 비었는지 본다
-        let missing = Set(CompletenessChecker(rules: rules).missingFields(of: current.libraryTrack(id: id)))
+        let missing = Set(checkers.checker(for: rules).missingFields(of: current.libraryTrack(id: id)))
         var change = TrackChange()
 
         for field in textFields {

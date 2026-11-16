@@ -37,7 +37,7 @@ struct ReviewSheetImportView: View {
                     Task { await state.apply(ids) }
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(result.approve.isEmpty || state.isApplying)
+                .disabled(result.approve.isEmpty || state.isBusy)
             }
         }
         .padding(20)
@@ -45,6 +45,6 @@ struct ReviewSheetImportView: View {
     }
 }
 
-extension ReviewSheet.ImportResult: @retroactive Identifiable {
+extension ReviewSheet.ImportResult: Identifiable {
     public var id: String { "\(overrides.count)-\(approve.count)-\(reject.count)-\(errors.count)-\(unchanged)" }
 }

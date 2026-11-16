@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 
 /// 메모리 기반 Music 앱. 오류 주입으로 강제 종료·검증 실패를 흉내 낸다.
 final class FakeMusic: MusicScripting, @unchecked Sendable {
-    enum Operation { case write, setArtwork, deleteArtwork }
+    enum Operation { case write, setArtwork, deleteArtwork, deleteTrack }
 
     private let lock = NSLock()
     private var tracks: [PersistentID: TrackFields]
@@ -79,6 +79,14 @@ final class FakeMusic: MusicScripting, @unchecked Sendable {
     func artworkData(of id: PersistentID) async throws -> Data? { artworkList(id).first }
 
     func libraryTrackCount() async throws -> Int { libraryCount }
+
+    func deleteTrack(_ id: PersistentID) async throws {
+        try perform(.deleteTrack, id) {
+            guard tracks[id] != nil else { throw MusicScriptError(number: -1728, message: "") }
+            tracks[id] = nil
+            artworks[id] = nil
+        }
+    }
 
     private func perform(_ operation: Operation, _ id: PersistentID, _ body: () throws -> Void) throws {
         onWrite?(id)

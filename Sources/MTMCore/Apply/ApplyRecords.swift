@@ -194,6 +194,17 @@ extension AppDatabase {
         }
     }
 
+    /// 쓰는 도중에 끊긴 곡(강제 종료·권한 문제 등)이 있는 작업. 같은 변경을 다시 쓰면 되므로 앱을 켤 때 자동으로 잇는다.
+    /// 사용자가 중지해 '대기' 곡만 남은 작업은 여기 들어가지 않는다 (작업 이력에서 직접 이어서 실행).
+    public func interruptedJobIDs() throws -> [Int64] {
+        try writer.read { db in
+            try Int64.fetchAll(db, sql: """
+                SELECT DISTINCT r.job_id FROM apply_results r JOIN jobs j ON j.id = r.job_id
+                WHERE j.finished_at IS NULL AND r.state = 'WRITING' ORDER BY r.job_id
+                """)
+        }
+    }
+
     /// 아직 스냅샷(되돌리기 자료)이 남아 있는 작업 ID. 보존 기간이 지나 정리된 작업은 여기서 빠진다.
     public func jobIDsWithSnapshots() throws -> Set<Int64> {
         try writer.read { db in Set(try Int64.fetchAll(db, sql: "SELECT DISTINCT job_id FROM snapshots")) }

@@ -62,6 +62,8 @@ public struct TrackRecord: Codable, FetchableRecord, PersistableRecord, Sendable
     public var artworkWidth: Int?
     public var artworkHeight: Int?
     public var isCloudOnly: Bool
+    /// FairPlay DRM 보호 곡 (오디오 지문을 만들 수 없다)
+    public var isDRMProtected: Bool
     public var isEligible: Bool
     public var albumGroupKey: String
     /// ITLibrary 수정 시각 (초, 정확한 왕복을 위해 REAL로 저장)
@@ -88,6 +90,7 @@ public struct TrackRecord: Codable, FetchableRecord, PersistableRecord, Sendable
         case artworkWidth = "artwork_width"
         case artworkHeight = "artwork_height"
         case isCloudOnly = "is_cloud_only"
+        case isDRMProtected = "is_drm_protected"
         case isEligible = "is_eligible"
         case albumGroupKey = "album_group_key"
         case modifiedAt = "modified_at"
@@ -114,6 +117,7 @@ public struct TrackRecord: Codable, FetchableRecord, PersistableRecord, Sendable
         durationMs = track.durationMs
         hasArtwork = track.hasArtwork
         isCloudOnly = track.isCloud && track.fileURL == nil
+        isDRMProtected = track.isDRMProtected
         isEligible = result.completeness.isEligible
         albumGroupKey = Self.albumGroupKey(for: track, missing: result.missing)
         modifiedAt = track.modifiedDate?.timeIntervalSince1970
@@ -139,7 +143,7 @@ public struct TrackRecord: Codable, FetchableRecord, PersistableRecord, Sendable
             albumArtist: albumArtist, album: album, genre: genre, year: year, trackNumber: trackNo,
             trackCount: trackCount, discNumber: discNo, discCount: discCount, durationMs: durationMs,
             hasArtwork: hasArtwork, fileURL: filePath.map { URL(fileURLWithPath: $0) }, isCloud: isCloudOnly,
-            isSong: completeness != .excludedUnsupported, modifiedDate: modifiedAt.map(Date.init(timeIntervalSince1970:)))
+            isDRMProtected: isDRMProtected, isSong: completeness != .excludedUnsupported, modifiedDate: modifiedAt.map(Date.init(timeIntervalSince1970:)))
     }
 }
 

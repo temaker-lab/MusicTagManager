@@ -28,6 +28,8 @@ ids = {k: oid(k) for k in [
     "phaseSources", "phaseFrameworks", "phaseResources", "phaseCopyBin",
     "projectConfigs", "projectDebug", "projectRelease", "appConfigs", "appDebug", "appRelease",
     "package", "coreDependency",
+    # 권한 요청 문구 지역화 (Resources/en.lproj·ko.lproj의 InfoPlist.strings)
+    "infoStrings", "infoStringsEn", "infoStringsKo", "buildInfoStrings",
 ]}
 
 common_debug = {
@@ -62,8 +64,8 @@ common_release = {
 app_settings = {
     "PRODUCT_NAME": "MusicTagManager",
     "PRODUCT_BUNDLE_IDENTIFIER": "com.temzzang.MusicTagManager",
-    "MARKETING_VERSION": "1.0.2",
-    "CURRENT_PROJECT_VERSION": "3",
+    "MARKETING_VERSION": "1.0.3",
+    "CURRENT_PROJECT_VERSION": "4",
     "INFOPLIST_FILE": "Resources/Info.plist",
     "GENERATE_INFOPLIST_FILE": "NO",
     "CODE_SIGN_ENTITLEMENTS": "Resources/MusicTagManager.entitlements",
@@ -97,6 +99,7 @@ pbxproj = f"""// !$*UTF8*$!
 		{ids['buildOnboarding']} /* Onboarding in Resources */ = {{isa = PBXBuildFile; fileRef = {ids['onboarding']} /* Onboarding */; }};
 		{ids['buildFpcalc']} /* fpcalc in Copy fpcalc */ = {{isa = PBXBuildFile; fileRef = {ids['fpcalc']} /* fpcalc */; settings = {{ATTRIBUTES = (CodeSignOnCopy, ); }}; }};
 		{ids['buildCore']} /* MTMCore in Frameworks */ = {{isa = PBXBuildFile; productRef = {ids['coreDependency']} /* MTMCore */; }};
+		{ids['buildInfoStrings']} /* InfoPlist.strings in Resources */ = {{isa = PBXBuildFile; fileRef = {ids['infoStrings']} /* InfoPlist.strings */; }};
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -121,6 +124,8 @@ pbxproj = f"""// !$*UTF8*$!
 		{ids['onboarding']} /* Onboarding */ = {{isa = PBXFileReference; lastKnownFileType = folder; path = Onboarding; sourceTree = "<group>"; }};
 		{ids['fpcalc']} /* fpcalc */ = {{isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = bin/fpcalc; sourceTree = "<group>"; }};
 		{ids['readme']} /* README.md */ = {{isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; }};
+		{ids['infoStringsEn']} /* en */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; }};
+		{ids['infoStringsKo']} /* ko */ = {{isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/InfoPlist.strings; sourceTree = "<group>"; }};
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -166,6 +171,7 @@ pbxproj = f"""// !$*UTF8*$!
 				{ids['entitlements']} /* MusicTagManager.entitlements */,
 				{ids['icon']} /* AppIcon.icns */,
 				{ids['onboarding']} /* Onboarding */,
+				{ids['infoStrings']} /* InfoPlist.strings */,
 				{ids['fpcalc']} /* fpcalc */,
 			);
 			path = Resources;
@@ -213,6 +219,7 @@ pbxproj = f"""// !$*UTF8*$!
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				ko,
+				en,
 				Base,
 			);
 			mainGroup = {ids['mainGroup']};
@@ -237,6 +244,7 @@ pbxproj = f"""// !$*UTF8*$!
 			files = (
 				{ids['buildIcon']} /* AppIcon.icns in Resources */,
 				{ids['buildOnboarding']} /* Onboarding in Resources */,
+				{ids['buildInfoStrings']} /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		}};
@@ -251,6 +259,18 @@ pbxproj = f"""// !$*UTF8*$!
 			runOnlyForDeploymentPostprocessing = 0;
 		}};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		{ids['infoStrings']} /* InfoPlist.strings */ = {{
+			isa = PBXVariantGroup;
+			children = (
+				{ids['infoStringsEn']} /* en */,
+				{ids['infoStringsKo']} /* ko */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		}};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		{ids['projectDebug']} /* Debug */ = {{

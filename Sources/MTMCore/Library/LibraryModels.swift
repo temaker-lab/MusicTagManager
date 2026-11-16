@@ -88,6 +88,18 @@ public struct LibraryTrack: Identifiable, Hashable, Sendable {
     }
 }
 
+/// 파일 삭제 확인 창 등에 보여 줄 음원 파일 정보 (보관함이 기록해 둔 값)
+public struct TrackFileDetails: Sendable, Equatable {
+    /// kbps (모르면 0)
+    public var bitrateKbps: Int
+    /// Hz (모르면 0)
+    public var sampleRate: Int
+    /// 형식 이름 (예: "MPEG 오디오 파일")
+    public var kind: String?
+    /// 바이트 (모르면 0)
+    public var fileSize: Int64
+}
+
 /// 한 시점의 플레이리스트 목록
 public struct LibraryCatalog: Sendable {
     public let playlists: [LibraryPlaylist]

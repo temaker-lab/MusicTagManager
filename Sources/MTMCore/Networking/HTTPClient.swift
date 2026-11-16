@@ -7,9 +7,9 @@ public enum HTTPError: LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
-        case .status(let code): return "서버 응답 오류 (HTTP \(code))"
-        case .offline: return "네트워크에 연결되어 있지 않습니다"
-        case .retriesExhausted(let code): return "재시도 후에도 요청이 거절되었습니다 (HTTP \(code))"
+        case .status(let code): return MTMLoc.f("http.err.status", "서버 응답 오류 (HTTP %d)", code)
+        case .offline: return MTMLoc.t("http.err.offline", "네트워크에 연결되어 있지 않습니다")
+        case .retriesExhausted(let code): return MTMLoc.f("http.err.retries", "재시도 후에도 요청이 거절되었습니다 (HTTP %d)", code)
         }
     }
 }

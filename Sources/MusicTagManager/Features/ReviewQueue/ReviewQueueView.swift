@@ -68,15 +68,15 @@ struct ReviewQueueView: View {
                     let ids = cards.flatMap(\.rows).filter { [.high, .medium].contains($0.level) && $0.isApplicable }.map(\.id)
                     Task { await state.apply(Set(ids)) }
                 }
-                .disabled(state.isApplying || !cards.flatMap(\.rows).contains { [.high, .medium].contains($0.level) && $0.isApplicable })
+                .disabled(state.isBusy || !cards.flatMap(\.rows).contains { [.high, .medium].contains($0.level) && $0.isApplicable })
                 Button(L("review.approveSelected")) { approve(selectedCards(cards)) }
-                    .disabled(selection.isEmpty || state.isApplying)
+                    .disabled(selection.isEmpty || state.isBusy)
                     .help("⌘Return")
                 Button(L("review.rejectAll")) { confirmRejectAll = true }
-                    .disabled(cards.isEmpty || state.isApplying)
+                    .disabled(cards.isEmpty || state.isBusy)
                 Button(Lf("review.applyAllN", allApplicable(cards).count)) { confirmApplyAll = true }
                     .buttonStyle(.borderedProminent)
-                    .disabled(allApplicable(cards).isEmpty || state.isApplying)
+                    .disabled(allApplicable(cards).isEmpty || state.isBusy)
                     .help(L("review.applyAll.help"))
             }
             Text(L("review.keyHints"))
@@ -171,7 +171,7 @@ struct ReviewQueueView: View {
 
     private func approve(_ cards: [AlbumCard]) {
         let ids = cards.reduce(into: Set<PersistentID>()) { $0.formUnion($1.applicableIDs) }
-        guard !ids.isEmpty, !state.isApplying else { return }
+        guard !ids.isEmpty, !state.isBusy else { return }
         moveSelection(after: cards)
         Task { await state.apply(ids) }
     }

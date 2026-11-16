@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import ImageIO
 import MTMCore
 import Observation
 
@@ -300,6 +301,42 @@ struct JobRow: Identifiable, Hashable {
     }
 }
 
+/// 파일 삭제 확인 창에 보여 줄 곡·파일 정보
+struct TrackDeletionInfo: Identifiable {
+    let id: PersistentID
+    let title: String
+    let artist: String
+    let album: String
+    /// 로컬 파일 (클라우드 전용 곡 등은 nil)
+    let fileURL: URL?
+    let fileExists: Bool
+    let durationMs: Int
+    let fileSize: Int64?
+    let bitrateKbps: Int?
+    let sampleRate: Int?
+    let kind: String?
+
+    var durationText: String {
+        guard durationMs > 0 else { return "—" }
+        let seconds = durationMs / 1000
+        return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    var sizeText: String {
+        fileSize.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) } ?? "—"
+    }
+
+    var bitrateText: String {
+        guard let bitrateKbps, bitrateKbps > 0 else { return "—" }
+        return "\(bitrateKbps) kbps"
+    }
+
+    var sampleRateText: String {
+        guard let sampleRate, sampleRate > 0 else { return "—" }
+        return String(format: "%.1f kHz", Double(sampleRate) / 1000)
+    }
+}
+
 /// 전역 상태. View는 이 객체와 ViewModel을 통해서만 Core를 사용한다.
 @MainActor
 @Observable
@@ -349,7 +386,18 @@ final class AppState {
 
     /// 다른 화면에서 열 탭 요청
     var requestedTab: DashboardViewModel.Tab?
-    @ObservationIgnored private var artworkImages: [String: NSImage] = [:]
+    /// 커버 미리보기 캐시 (축소한 썸네일만, 개수 제한 — 메모리가 부족하면 시스템이 비운다)
+    @ObservationIgnored private let artworkImages: NSCache<NSString, NSImage> = {
+        let cache = NSCache<NSString, NSImage>()
+        cache.countLimit = 400
+        return cache
+    }()
+    /// 진행 중인 식별·적용을 멈추는 동작 (없으면 nil)
+    @ObservationIgnored private var cancelWork: (() -> Void)?
+    @ObservationIgnored private var stopRequested = false
+    /// 방금 Music에서 삭제한 곡 (보관함 읽기가 삭제를 반영할 때까지 검사 결과에서 뺀다)
+    @ObservationIgnored private var recentlyDeleted = Set<PersistentID>()
+    @ObservationIgnored private var lastProgressReload = Date.distantPast
     /// 삭제되어 자동 해제된 플레이리스트 (알림 1회)
     var removedPlaylistNotice: [String] = []
 
@@ -377,6 +425,18 @@ final class AppState {
         }
     }
 
+    /// 검사·식별·적용 중 하나라도 진행 중인가. 보관함·이력·범위를 바꾸는 모든 동작은 이 값으로 막는다.
+    var isBusy: Bool { isScanning || isIdentifying || isApplying }
+
+    /// 지금 진행 중인 작업을 사용자가 멈출 수 있는가 (식별·적용)
+    var canStop: Bool { isIdentifying || isApplying }
+
+    /// 진행 중인 식별·적용을 멈춘다. 끝난 곡까지는 저장되고, 적용은 작업 이력에서 이어서 실행할 수 있다.
+    func stopCurrentWork() {
+        stopRequested = true
+        cancelWork?()
+    }
+
     var selectedPlaylists: [LibraryPlaylist] {
         guard let catalog else { return [] }
         return selectedIDs.compactMap(catalog.playlist)
@@ -394,6 +454,8 @@ final class AppState {
         await resumeUnfinishedJobs()
         // 보존 기간이 지난 되돌리기 스냅샷·백업 파일 정리
         pruneOldSnapshots()
+        // 유효 기간(30일)이 지난 외부 API 응답 캐시 정리
+        try? database?.pruneAPICache(olderThan: Date().addingTimeInterval(-30 * 86_400))
     }
 
     /// 보존 기간(설정)이 지난 되돌리기 스냅샷과 그 백업 파일을 정리한다. 0일이면 무제한 보관.
@@ -449,7 +511,8 @@ final class AppState {
 
     /// 대상 플레이리스트를 바꾼다. 바뀌면 작업 이력·정리 완료 수·식별 결과를 초기화한다 (이전 변경은 되돌릴 수 없게 됨).
     func updateSelection(_ ids: Set<PersistentID>) async {
-        guard let database, let catalog else { return }
+        // 진행 중인 작업이 있으면 범위를 바꾸지 않는다 (이력 초기화가 진행 중인 작업의 되돌리기 자료를 지운다)
+        guard let database, let catalog, !isBusy else { return }
         // 카탈로그 순서를 유지해 저장
         let playlists = catalog.playlists.filter { ids.contains($0.id) }
         let changed = Set(playlists.map(\.id)) != Set(selectedIDs)
@@ -485,7 +548,7 @@ final class AppState {
     }
 
     func updateRules(_ rules: CompletenessRules) async {
-        guard rules != settings.rules else { return }
+        guard rules != settings.rules, !isBusy else { return }
         settings.rules = rules
         await refresh()
     }
@@ -522,9 +585,11 @@ final class AppState {
     func identify(force: Bool = false) async -> IdentifyOutcome {
         guard let database, lastScan != nil, !isIdentifying, !isScanning, !isApplying else { return .skipped }
         isIdentifying = true
+        stopRequested = false
         defer {
             isIdentifying = false
             activity = nil
+            cancelWork = nil
         }
         // ITLibrary가 커버가 있다고 한 정리 대상 곡은 Music에서 실제 커버를 한 번 확인한다
         await verifyArtworkTruth()
@@ -533,8 +598,9 @@ final class AppState {
         let service = makeIdentificationService(database)
         var outcome = IdentifyOutcome.completed
         activity = Activity(title: L("activity.identify"))
-        do {
-            lastIdentification = try await service.identify(scope: scan.tracks, force: force) { progress in
+        // 별도 작업으로 돌려 '중지' 버튼으로 취소할 수 있게 한다
+        let work = Task {
+            try await service.identify(scope: scan.tracks, force: force) { progress in
                 Task { @MainActor [weak self] in
                     // 이미 다음 단계로 넘어갔으면 늦게 도착한 진행 알림은 버린다
                     guard let self, self.activity?.title == L("activity.identify") else { return }
@@ -542,6 +608,14 @@ final class AppState {
                                              detail: progress.currentLabel)
                 }
             }
+        }
+        cancelWork = { work.cancel() }
+        do {
+            lastIdentification = try await work.value
+            errorMessage = nil
+        } catch is CancellationError {
+            // 사용자가 중지함: 끝난 곡까지는 저장되어 있다 (다음 식별 때 남은 곡부터)
+            outcome = .skipped
             errorMessage = nil
         } catch let error as HTTPError where error == .offline {
             outcome = .offline
@@ -562,7 +636,8 @@ final class AppState {
         let acoustID = settings.identification.useAcoustID ? AcoustIDProvider.makeIfConfigured(http: http) : nil
         return IdentificationService(
             database: database,
-            musicBrainz: MusicBrainzProvider(http: http, contact: settings.musicBrainzContact),
+            musicBrainz: MusicBrainzProvider(http: http, contact: settings.musicBrainzContact,
+                                             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"),
             itunes: ITunesSearchProvider(http: http), acoustID: acoustID, settings: settings.identification)
     }
 
@@ -686,6 +761,7 @@ final class AppState {
         let unique = pending.filter { seen.insert($0.artworkCandidates).inserted }
         activity = Activity(title: L("activity.coverCandidates"), done: 0, total: unique.count)
         for (index, proposal) in unique.enumerated() {
+            if stopRequested { break }
             _ = await service.prepareWithReport(proposal.artworkCandidates)
             activity = Activity(title: L("activity.coverCandidates"), done: index + 1, total: unique.count)
         }
@@ -706,7 +782,7 @@ final class AppState {
 
     /// 선택한 제안을 Music에 적용한다 (스냅샷 → 쓰기 → 검증)
     func apply(_ ids: Set<PersistentID>) async {
-        guard let database, let service = makeApplyService(), let scan = lastScan, !isApplying else { return }
+        guard let database, let service = makeApplyService(), let scan = lastScan, !isBusy else { return }
         let tracks = Dictionary(uniqueKeysWithValues: scan.tracks.map { ($0.id, $0.track) })
         // 미리보기상 바뀔 값이 있는 곡만 (식별 실패·거절 제외). '채울 값 없음'이었어도 교체 정책으로 바뀔 값이 있으면 포함
         let applicable = Set(proposalRows.filter { ids.contains($0.id) && $0.isApplicable }.map(\.id.hex))
@@ -840,7 +916,7 @@ final class AppState {
         guard let database, let proposals = try? database.proposals() else { return nil }
         let text: String
         do {
-            text = try String(contentsOf: url, encoding: .utf8)
+            text = try Self.decodeSheet(Data(contentsOf: url))
         } catch {
             errorMessage = Lf("err.importSheetFailed", error.localizedDescription)
             return nil
@@ -855,6 +931,17 @@ final class AppState {
         if !result.reject.isEmpty { try? database.reject(result.reject) }
         reloadProposals()
         return result
+    }
+
+    /// 엑셀은 CSV를 UTF-8이 아닌 인코딩으로 저장하기도 한다 (한국어 환경: CP949, 유니코드 텍스트: UTF-16)
+    private static func decodeSheet(_ data: Data) throws -> String {
+        if let text = String(data: data, encoding: .utf8) { return text }
+        if data.starts(with: [0xFF, 0xFE]) || data.starts(with: [0xFE, 0xFF]),
+           let text = String(data: data, encoding: .utf16) { return text }
+        let cp949 = String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(
+            CFStringEncoding(CFStringEncodings.dosKorean.rawValue)))
+        if let text = String(data: data, encoding: cp949) { return text }
+        throw CocoaError(.fileReadInapplicableStringEncoding)
     }
 
     // MARK: - 커버 끌어 놓기
@@ -895,26 +982,106 @@ final class AppState {
         reloadProposals()
     }
 
+    // MARK: - 파일 삭제
+
+    /// 삭제 확인 창에 보여 줄 정보 (파일 위치·재생 시간·용량·비트레이트 등)
+    func deletionInfo(for id: PersistentID) async -> TrackDeletionInfo? {
+        guard let track = lastScan?.tracks.first(where: { $0.id == id })?.track else { return nil }
+        let details = await reader.fileDetails(for: id)
+        var size: Int64?
+        if let recorded = details?.fileSize, recorded > 0 { size = recorded }
+        var exists = false
+        if let url = track.fileURL {
+            exists = FileManager.default.fileExists(atPath: url.path)
+            // 실제 파일 크기가 가장 정확하다
+            if let bytes = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? NSNumber {
+                size = bytes.int64Value
+            }
+        }
+        return TrackDeletionInfo(
+            id: id, title: Normalizer.clean(track.title), artist: Normalizer.clean(track.artist),
+            album: Normalizer.clean(track.album), fileURL: track.fileURL, fileExists: exists,
+            durationMs: track.durationMs, fileSize: size, bitrateKbps: details?.bitrateKbps,
+            sampleRate: details?.sampleRate, kind: details?.kind)
+    }
+
+    /// 곡 하나를 Music 보관함에서 삭제하고(모든 플레이리스트에서 빠짐) 파일을 휴지통으로 옮긴다.
+    /// Music에서 먼저 지우고, 성공했을 때만 파일을 옮긴다 (반대 순서면 Music에 '파일 없음' 곡이 남는다).
+    /// - Returns: Music에서 삭제했으면 true
+    @discardableResult
+    func deleteTrack(_ id: PersistentID) async -> Bool {
+        guard let database, !isBusy, let track = lastScan?.tracks.first(where: { $0.id == id })?.track else { return false }
+        isApplying = true
+        activity = Activity(title: L("activity.deleting"), detail: Normalizer.clean(track.title))
+        defer {
+            isApplying = false
+            activity = nil
+        }
+        guard await Permissions.launchMusicIfNeeded() else {
+            errorMessage = L("err.launchMusicFailed")
+            return false
+        }
+        let writer = LibraryWriter(music: music, maxLibraryTracks: settings.writeGuardEnabled ? AppSettings.writeGuardLimit : nil)
+        do {
+            try await writer.deleteTrack(id)
+        } catch {
+            Log.app.error("곡 삭제 실패 \(id.hex, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            errorMessage = Lf("err.deleteTrackFailed", error.localizedDescription)
+            return false
+        }
+        var trashError: String?
+        if let url = track.fileURL, FileManager.default.fileExists(atPath: url.path) {
+            do {
+                try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+            } catch {
+                trashError = Lf("err.trashFailed", error.localizedDescription)
+            }
+        }
+        try? database.removeTrack(id)
+        recentlyDeleted.insert(id)
+        activity = Activity(title: L("activity.tidying"))
+        await refresh()
+        if let trashError { errorMessage = trashError }
+        return true
+    }
+
     // MARK: - 커버 미리보기 이미지
 
     /// `track:`(Music의 커버) · `itunes:`/`caa:`(내려받기) · `file:` 후보를 이미지로 (메모리 캐시)
     func artworkImage(for reference: String) async -> NSImage? {
-        if let cached = artworkImages[reference] { return cached }
+        let key = reference as NSString
+        if let cached = artworkImages.object(forKey: key) { return cached }
         var data: Data?
         if reference.hasPrefix("track:"), let id = PersistentID(hex: String(reference.dropFirst(6))) {
             data = try? await music.artworkData(of: id)
         } else if reference.hasPrefix("file:") {
             data = try? Data(contentsOf: URL(fileURLWithPath: String(reference.dropFirst(5))))
-        } else if let colon = reference.firstIndex(of: ":"), let url = URL(string: String(reference[reference.index(after: colon)...])) {
+        } else if let colon = reference.firstIndex(of: ":"),
+                  // iTunes 커버는 미리보기용 작은 크기로 받는다 (원본 1200px을 통째로 받을 필요가 없다)
+                  let url = URL(string: String(reference[reference.index(after: colon)...])
+                      .replacingOccurrences(of: "1200x1200bb", with: "300x300bb")) {
             data = try? await URLSession.shared.data(from: url).0
         }
-        let image = data.flatMap(NSImage.init(data:))
-        artworkImages[reference] = image
+        // 실패는 캐시하지 않는다 (오프라인 등 일시적 실패 뒤에 다시 시도할 수 있게)
+        guard let data, let image = Self.thumbnail(from: data) else { return nil }
+        artworkImages.setObject(image, forKey: key)
         return image
     }
 
+    /// 미리보기용 축소 이미지 (원본 해상도 그대로 들고 있으면 곡 수만큼 메모리가 늘어난다)
+    private static func thumbnail(from data: Data, maxPixel: Int = 256) -> NSImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+    }
+
     func undo(_ scope: UndoScope) async {
-        guard let service = makeApplyService(), !isApplying else { return }
+        guard let service = makeApplyService(), !isBusy else { return }
         do {
             guard let jobID = try service.createUndoJob(scope) else {
                 errorMessage = L("err.nothingToUndo")
@@ -926,10 +1093,11 @@ final class AppState {
         }
     }
 
-    /// 강제 종료 등으로 끝나지 않은 작업을 이어서 진행한다
+    /// 쓰는 도중에 끊긴 작업(강제 종료 등)을 이어서 진행한다.
+    /// 사용자가 중지했거나 안전장치로 시작하지 못한 작업은 자동으로 잇지 않는다 (작업 이력의 '이어서 실행').
     func resumeUnfinishedJobs() async {
         guard let database, let service = makeApplyService(),
-              let jobIDs = try? database.unfinishedJobIDs(), !jobIDs.isEmpty else {
+              let jobIDs = try? database.interruptedJobIDs(), !jobIDs.isEmpty else {
             reloadJobs()
             return
         }
@@ -941,10 +1109,12 @@ final class AppState {
 
     func run(_ jobID: Int64, service: ApplyService) async {
         isApplying = true
+        stopRequested = false
         activity = Activity(title: L("activity.apply"))
         defer {
             isApplying = false
             activity = nil
+            cancelWork = nil
         }
         guard await Permissions.launchMusicIfNeeded() else {
             errorMessage = L("err.launchMusicFailed")
@@ -953,14 +1123,22 @@ final class AppState {
         }
         var failure: String?
         do {
-            lastJobSummary = try await service.run(jobID: jobID) { progress in
-                Task { @MainActor [weak self] in
-                    guard let self, self.activity?.title == L("activity.apply") else { return }
-                    self.activity = Activity(title: L("activity.apply"), done: progress.done, total: progress.total, detail: progress.label)
-                    // 적용하는 동안에도 대시보드 숫자(정리 완료·검토 대기·식별 결과 남은 곡)를 갱신한다
-                    if progress.done == progress.total || progress.done % 5 == 0 { self.reloadProposals() }
+            // 별도 작업으로 돌려 '중지' 버튼으로 취소할 수 있게 한다 (남은 곡은 '대기'로 남아 이어서 실행 가능)
+            let work = Task {
+                try await service.run(jobID: jobID) { progress in
+                    Task { @MainActor [weak self] in
+                        guard let self, self.activity?.title == L("activity.apply") else { return }
+                        self.activity = Activity(title: L("activity.apply"), done: progress.done, total: progress.total, detail: progress.label)
+                        // 적용하는 동안에도 대시보드 숫자를 갱신하되, 전체 목록을 다시 계산하는 일이라 1.5초에 한 번만 한다
+                        if progress.done == progress.total || Date().timeIntervalSince(self.lastProgressReload) >= 1.5 {
+                            self.lastProgressReload = Date()
+                            self.reloadProposals()
+                        }
+                    }
                 }
             }
+            cancelWork = { work.cancel() }
+            lastJobSummary = try await work.value
         } catch {
             Log.app.error("작업 \(jobID) 중단: \(error.localizedDescription, privacy: .public)")
             failure = Lf("err.jobStopped", error.localizedDescription)
@@ -973,7 +1151,7 @@ final class AppState {
     }
 
     func cancel(jobID: Int64) {
-        guard let service = makeApplyService(), !isApplying else { return }
+        guard let service = makeApplyService(), !isBusy else { return }
         do {
             try service.cancel(jobID: jobID)
         } catch {
@@ -984,7 +1162,7 @@ final class AppState {
     }
 
     func resume(jobID: Int64) async {
-        guard let service = makeApplyService(), !isApplying else { return }
+        guard let service = makeApplyService(), !isBusy else { return }
         await run(jobID, service: service)
     }
 
@@ -1010,7 +1188,10 @@ final class AppState {
         }
     }
 
-    private func apply(_ outcome: ScanOutcome) {
+    private func apply(_ scanned: ScanOutcome) {
+        // 보관함 읽기가 삭제를 반영했으면(더 이상 안 보이면) 기억해 둔 삭제 목록에서 지운다
+        recentlyDeleted.formIntersection(Set(scanned.tracks.map(\.id)))
+        let outcome = scanned.removing(recentlyDeleted)
         rawScan = outcome
         lastScan = outcome
         rows = outcome.tracks.map { TrackRow($0) }

@@ -59,6 +59,8 @@ struct RootView: View {
             }
         }
         .themed(state.settings.appearance)
+        // 제목 표시줄을 키워 닫기 버튼을 조금 내리고, 상단 탭 묶음과 세로 위치를 맞춘다
+        .background(TallTitlebar())
         .overlay {
             if let notice = state.completionNotice {
                 CompletionDialog(notice: notice) { suppress in state.dismissCompletionNotice(suppress: suppress) }
@@ -75,12 +77,13 @@ struct RootView: View {
     }
 }
 
-/// 메인 화면(대시보드 등)의 창 크기: 최소 1180×760, 기본 이 크기, 사용자가 더 크게 조절 가능.
+/// 메인 화면(대시보드 등)의 창 크기: 기본 1180×760, 최소 1060×660 (화면 배율을 크게 쓰는 노트북에서도
+/// 창이 화면 밖으로 잘리지 않게 최소 크기는 기본보다 작게 둔다), 사용자가 더 크게 조절 가능.
 /// 온보딩 단계는 이 프레임 대신 작은 고정 크기를 쓴다.
 private struct MainWindowFrame: ViewModifier {
     func body(content: Content) -> some View {
-        content.frame(minWidth: 1180, idealWidth: 1180, maxWidth: .infinity,
-                      minHeight: 760, idealHeight: 760, maxHeight: .infinity)
+        content.frame(minWidth: 1060, idealWidth: 1180, maxWidth: .infinity,
+                      minHeight: 640, idealHeight: 740, maxHeight: .infinity)
     }
 }
 

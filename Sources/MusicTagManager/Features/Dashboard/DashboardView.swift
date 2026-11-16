@@ -14,13 +14,16 @@ struct DashboardView: View {
     @State private var importResult: ReviewSheet.ImportResult?
     /// 대상에서 뺄 플레이리스트 (확인 후 적용)
     @State private var removing: LibraryPlaylist?
+    /// 삭제 확인 창에 띄울 곡 (파일 정보 포함)
+    @State private var deleting: TrackDeletionInfo?
 
     struct EditTarget: Identifiable {
         let id: PersistentID
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        // 세로 공간은 곡 목록에 최대한 돌린다: 줄 사이 간격을 좁히고, 상단 바는 창 제목 표시줄 줄(신호등 버튼 옆)에 올린다
+        VStack(alignment: .leading, spacing: 10) {
             topBar
             scopeBar
             if let activity = state.activity {
@@ -34,7 +37,8 @@ struct DashboardView: View {
             }
             if let scan = state.lastScan {
                 overview(scan.stats)
-                contentCard
+                // 요약 카드와 곡 목록 사이 간격을 카드끼리의 좌우 간격(16pt)과 같게 맞춘다 (기본 줄 간격 10 + 6)
+                contentCard.padding(.top, 6)
             } else if state.isScanning {
                 ProgressView(L("dash.scanning"))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -45,8 +49,11 @@ struct DashboardView: View {
             }
         }
         .padding(.horizontal, 22)
-        .padding(.bottom, 20)
-        .padding(.top, 30)  // 창 제목 표시줄(신호등 버튼) 자리
+        .padding(.bottom, 14)
+        // 제목 표시줄(약 52pt) 안에서 탭 묶음이 세로 가운데에 오도록 → 닫기 버튼과 같은 높이에 놓인다
+        .padding(.top, TallTitlebar.tabBarTopPadding)
+        // 제목 표시줄 영역까지 콘텐츠를 올린다 (탭 묶음은 가운데라 신호등 버튼과 겹치지 않는다)
+        .ignoresSafeArea(.container, edges: .top)
         .background(palette.background.ignoresSafeArea())
         .foregroundStyle(palette.text)
         .onChange(of: state.requestedTab) { _, tab in
@@ -79,34 +86,32 @@ struct DashboardView: View {
             ReviewSheetImportView(result: result) { importResult = nil }
                 .environment(state)
         }
+        .sheet(item: $deleting) { info in
+            TrackDeleteConfirmView(info: info) { deleting = nil }
+                .environment(state)
+        }
     }
 
     // MARK: - 상단
 
+    /// 상단 바: 탭 묶음을 창 가운데에, 테마 전환을 오른쪽 끝에 둔다 (왼쪽은 신호등 버튼 자리라 비워 둠)
     private var topBar: some View {
-        HStack(spacing: 14) {
-            HStack(spacing: 10) {
-                Image(systemName: "music.note.list")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 30, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(LinearGradient(colors: [palette.accent, palette.accentBlue], startPoint: .topLeading, endPoint: .bottomTrailing)))
-                Text("MusicTag Manager").font(.title3.bold())
+        ZStack {
+            tabBar
+            HStack {
+                Spacer()
+                AppearanceSwitcher()
             }
-            Spacer(minLength: 20)
-            HStack(spacing: 8) {
-                ForEach(DashboardViewModel.Tab.allCases) { tab in
-                    Button {
-                        model.tab = tab
-                    } label: {
-                        Text(tab == .review && state.reviewCount > 0 ? "\(tab.title) \(state.reviewCount)" : tab.title)
-                    }
-                    .buttonStyle(PillButtonStyle(selected: model.tab == tab))
-                }
-            }
-            Spacer(minLength: 20)
-            AppearanceSwitcher()
         }
+    }
+
+    /// 네 탭을 하나의 캡슐 안에 담은 탭 묶음 (설정 창과 같은 공용 컴포넌트)
+    private var tabBar: some View {
+        CapsuleTabBar(
+            tabs: DashboardViewModel.Tab.allCases.map { tab in
+                CapsuleTab(id: tab, title: tab == .review && state.reviewCount > 0 ? "\(tab.title) \(state.reviewCount)" : tab.title)
+            },
+            selection: $model.tab)
     }
 
     private var scopeBar: some View {
@@ -190,7 +195,7 @@ struct DashboardView: View {
             identifyCard(stats)
             ApplyStatusCard { tab in model.tab = tab }
         }
-        .frame(height: 236)
+        .frame(height: 204)
     }
 
     /// 식별 결과 (신뢰도별 막대). 적용을 마친 곡은 빠지므로 정리가 진행될수록 막대가 줄어든다.
@@ -309,7 +314,13 @@ struct DashboardView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .contextMenu(forSelectionType: PersistentID.self) { ids in
-                    if ids.count == 1, let id = ids.first { Button(L("common.directEditEllipsis")) { editing = EditTarget(id: id) } }
+                    if ids.count == 1, let id = ids.first {
+                        Button(L("common.directEditEllipsis")) { editing = EditTarget(id: id) }
+                        Divider()
+                        // 삭제는 한 곡씩만 (확인 창에서 파일 정보를 보여 준 뒤 진행)
+                        Button(L("track.delete"), role: .destructive) { requestDelete(id) }
+                            .disabled(state.isBusy)
+                    }
                 } primaryAction: { ids in
                     if let id = ids.first { editing = EditTarget(id: id) }
                 }
@@ -329,7 +340,13 @@ struct DashboardView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .contextMenu(forSelectionType: PersistentID.self) { ids in
-                    if ids.count == 1, let id = ids.first { Button(L("common.directEditEllipsis")) { editing = EditTarget(id: id) } }
+                    if ids.count == 1, let id = ids.first {
+                        Button(L("common.directEditEllipsis")) { editing = EditTarget(id: id) }
+                        Divider()
+                        // 삭제는 한 곡씩만 (확인 창에서 파일 정보를 보여 준 뒤 진행)
+                        Button(L("track.delete"), role: .destructive) { requestDelete(id) }
+                            .disabled(state.isBusy)
+                    }
                 } primaryAction: { ids in
                     if let id = ids.first { editing = EditTarget(id: id) }
                 }
@@ -449,6 +466,11 @@ struct DashboardView: View {
         }
     }
 
+    /// 파일 정보를 읽어 삭제 확인 창을 띄운다
+    private func requestDelete(_ id: PersistentID) {
+        Task { deleting = await state.deletionInfo(for: id) }
+    }
+
     private func exportSheet() {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.commaSeparatedText]
@@ -519,12 +541,12 @@ private struct ScopeCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 5) {
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text(L("card.scope.title")).font(.headline).opacity(0.9)
                     Text(stats.scopeTotal, format: .number)
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .monospacedDigit()
                 }
                 Spacer()
@@ -538,7 +560,7 @@ private struct ScopeCard: View {
                         Text(L("card.complete.ring")).font(.system(size: 9)).opacity(0.7)
                     }
                 }
-                .frame(width: 58, height: 58)
+                .frame(width: 52, height: 52)
             }
             Spacer(minLength: 0)
             row(L("completeness.complete"), stats.complete, accent: false) { select(.complete) }
@@ -648,8 +670,8 @@ private struct ApplyStatusCard: View {
                     .buttonStyle(PillButtonStyle(selected: false, compact: true))
             }
             .lineLimit(1)
-            Spacer(minLength: 8)
-            VStack(spacing: 10) {
+            Spacer(minLength: 6)
+            VStack(spacing: 8) {
                 bar(L("card.bar.applied"), state.appliedCount, total, palette.success)
                 bar(L("card.bar.pending"), state.reviewCount, total, palette.warning)
                 bar(L("card.bar.failed"), failed, total, palette.danger)
@@ -732,6 +754,7 @@ private struct IdentifyButton: View {
 
 /// 진행 중인 작업 한 줄 (단계가 바뀌면 그 단계 기준으로 다시 센다)
 private struct ActivityBar: View {
+    @Environment(AppState.self) private var state
     @Environment(\.palette) private var palette
     let activity: Activity
 
@@ -749,6 +772,12 @@ private struct ActivityBar: View {
             }
             Text(activity.detail).font(.callout).foregroundStyle(palette.secondaryText).lineLimit(1)
             Spacer()
+            // 식별·적용은 오래 걸릴 수 있으므로 언제든 멈출 수 있게 한다 (끝난 곡까지는 저장됨)
+            if state.canStop {
+                Button(L("common.stop")) { state.stopCurrentWork() }
+                    .controlSize(.small)
+                    .help(L("activity.stop.help"))
+            }
         }
         .card(padding: 10)
     }
@@ -818,6 +847,131 @@ private struct StatusCell: View {
     }
 }
 
+/// 파일 삭제 확인 창: 파일 위치·파일명·곡 정보를 보여 주고, 확인하면 Music에서 삭제 + 파일을 휴지통으로 옮긴다
+struct TrackDeleteConfirmView: View {
+    @Environment(AppState.self) private var state
+    let info: TrackDeletionInfo
+    let dismiss: () -> Void
+    @State private var isDeleting = false
+    /// 곡 미리 듣기 재생기 (직접 수정 화면과 같은 방식: 창이 소유하고, 닫히거나 삭제를 시작하면 멈춘다)
+    @State private var preview = AudioPreviewPlayer()
+    @State private var showNoAudioAlert = false
+
+    private var isPreviewing: Bool { preview.currentID == info.id && preview.isPlaying }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // 헤더: 제목+곡 정보 블록 오른쪽에 미리 듣기 버튼 (직접 수정 화면과 같은 위치·디자인)
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "trash.fill").font(.title2).foregroundStyle(.red)
+                        Text(L("delete.title")).font(.title2.bold())
+                    }
+                    Text([info.title, info.artist, info.album].map { $0.isEmpty ? "∅" : $0 }.joined(separator: " · "))
+                        .font(.callout).foregroundStyle(.secondary)
+                        .lineLimit(1).truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                Button {
+                    togglePreview()
+                } label: {
+                    Image(systemName: isPreviewing ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 26, weight: .medium))
+                        .foregroundStyle(.white)
+                        .frame(width: 48, height: 48)
+                        .background(Color(hex: 0x7C5CFF), in: RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+                .disabled(isDeleting)
+                .help(isPreviewing ? L("edit.preview.pause") : L("edit.preview.play"))
+                .accessibilityLabel(isPreviewing ? L("edit.preview.pause") : L("edit.preview.play"))
+            }
+
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14, verticalSpacing: 7) {
+                if let url = info.fileURL {
+                    row(L("delete.field.filename"), url.lastPathComponent)
+                    row(L("delete.field.location"), url.deletingLastPathComponent().path)
+                } else {
+                    row(L("delete.field.location"), L("delete.noFile"))
+                }
+                row(L("delete.field.duration"), info.durationText)
+                row(L("delete.field.size"), info.sizeText)
+                row(L("delete.field.bitrate"), info.bitrateText)
+                row(L("delete.field.sampleRate"), info.sampleRateText)
+                row(L("delete.field.kind"), info.kind ?? "—")
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
+
+            VStack(alignment: .leading, spacing: 6) {
+                Label(L("delete.warnPlaylists"), systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(info.fileURL != nil && info.fileExists ? L("delete.warnTrash") : L("delete.noFile"))
+                    .font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            HStack {
+                if isDeleting {
+                    ProgressView().controlSize(.small)
+                    Text(L("delete.deleting")).font(.callout).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button(L("common.cancel"), action: dismiss)
+                    .keyboardShortcut(.cancelAction)
+                    .buttonStyle(NeutralActionButtonStyle())
+                    .disabled(isDeleting)
+                Button(L("delete.confirm"), role: .destructive) {
+                    isDeleting = true
+                    // 재생 중인 파일을 휴지통으로 옮기지 않게 먼저 멈춘다
+                    preview.stop()
+                    Task {
+                        await state.deleteTrack(info.id)
+                        isDeleting = false
+                        dismiss()
+                    }
+                }
+                .disabled(isDeleting || state.isBusy)
+            }
+        }
+        .padding(20)
+        .frame(width: 520)
+        .onDisappear { preview.stop() }
+        .alert(L("edit.preview.unavailableTitle"), isPresented: $showNoAudioAlert) {
+            Button(L("common.ok"), role: .cancel) {}
+        } message: {
+            Text(L("edit.preview.unavailableMsg"))
+        }
+    }
+
+    /// 이미 이 곡이 로드돼 있으면 일시정지/재개, 아니면 처음부터 재생. 재생할 파일이 없으면 안내를 띄운다.
+    private func togglePreview() {
+        if preview.currentID == info.id {
+            preview.toggle()
+            return
+        }
+        guard let url = state.previewAudioURL(for: info.id), preview.play(id: info.id, url: url) else {
+            showNoAudioAlert = true
+            return
+        }
+    }
+
+    private func row(_ label: String, _ value: String) -> some View {
+        GridRow {
+            Text(label).font(.callout).foregroundStyle(.secondary)
+            Text(value)
+                .font(.callout)
+                .textSelection(.enabled)
+                .lineLimit(3)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
 /// 대시보드·설정에서 쓰는 플레이리스트 변경 시트
 struct PlaylistSelectionSheet: View {
     @Environment(AppState.self) private var state
@@ -838,7 +992,7 @@ struct PlaylistSelectionSheet: View {
                     if state.hasHistory { confirmReset = true } else { apply() }
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(!model.hasSelection || !model.isDirty)
+                .disabled(!model.hasSelection || !model.isDirty || state.isBusy)
             }
         }
         .padding(20)

@@ -16,6 +16,22 @@ public enum ReviewSheet {
         (13, .year), (14, .trackNumber), (15, .trackCount), (16, .discNumber), (17, .discCount),
     ]
 
+    /// ID 앞에 붙이는 접두어. 16진수 ID가 숫자로만 이뤄졌거나 `12E3…` 꼴이면 엑셀이 숫자(지수 표기)로 바꿔
+    /// 저장해 버려 다시 가져올 때 곡을 찾지 못한다. 접두어를 붙여 항상 문자열로 남게 한다.
+    static let idPrefix = "id:"
+
+    /// 스프레드시트가 수식으로 실행할 수 있는 값(`=`·`+`·`-`·`@`로 시작)은 앞에 `'`를 붙여 글자로 남긴다.
+    /// 값은 외부 데이터베이스에서 온 것이므로 그대로 내보내면 수식 주입이 될 수 있다. 가져올 때 다시 뗀다.
+    static func guarded(_ value: String) -> String {
+        guard let first = value.first, "=+-@".contains(first) else { return value }
+        return "'" + value
+    }
+
+    static func unguarded(_ value: String) -> String {
+        guard value.hasPrefix("'"), let second = value.dropFirst().first, "=+-@".contains(second) else { return value }
+        return String(value.dropFirst())
+    }
+
     /// - Parameter statuses: 표에 보이는 상태 이름 (persistent_id → 상태)
     public static func export(proposals: [ProposalRecord], tracks: [PersistentID: LibraryTrack],
                               statuses: [String: String] = [:]) -> String {
@@ -24,13 +40,14 @@ public enum ReviewSheet {
             let track = PersistentID(hex: proposal.persistentID).flatMap { tracks[$0] }
             func number(_ value: Int?) -> String { value.map(String.init) ?? "" }
             rows.append([
-                proposal.persistentID, "", proposal.confidenceLevel.label, String(proposal.confidenceScore),
+                idPrefix + proposal.persistentID, "", proposal.confidenceLevel.label, String(proposal.confidenceScore),
                 statuses[proposal.persistentID] ?? "",
-                Normalizer.clean(track?.title), Normalizer.clean(track?.artist), Normalizer.clean(track?.album),
-                proposal.title ?? "", proposal.artist ?? "", proposal.album ?? "", proposal.albumArtist ?? "", proposal.genre ?? "",
+                guarded(Normalizer.clean(track?.title)), guarded(Normalizer.clean(track?.artist)), guarded(Normalizer.clean(track?.album)),
+                guarded(proposal.title ?? ""), guarded(proposal.artist ?? ""), guarded(proposal.album ?? ""),
+                guarded(proposal.albumArtist ?? ""), guarded(proposal.genre ?? ""),
                 number(proposal.year), number(proposal.trackNo), number(proposal.trackCount),
                 number(proposal.discNo), number(proposal.discCount),
-                proposal.evidence.reasons.joined(separator: ", "),
+                guarded(proposal.evidence.reasons.joined(separator: ", ")),
             ])
         }
         // BOM: 엑셀에서 한글이 깨지지 않게
@@ -55,12 +72,14 @@ public enum ReviewSheet {
         }
         for (offset, row) in rows.dropFirst().enumerated() {
             let line = offset + 2
-            guard let pidText = row.first?.trimmingCharacters(in: .whitespaces), !pidText.isEmpty else { continue }
+            guard var pidText = row.first?.trimmingCharacters(in: .whitespaces), !pidText.isEmpty else { continue }
+            // 접두어가 없는 예전 검수표도 그대로 읽는다
+            if pidText.lowercased().hasPrefix(idPrefix) { pidText = String(pidText.dropFirst(idPrefix.count)) }
             guard let id = PersistentID(hex: pidText), let proposal = proposals[id.hex] else {
                 result.errors.append("\(line)행: 알 수 없는 곡 (\(pidText))")
                 continue
             }
-            func cell(_ index: Int) -> String { index < row.count ? Normalizer.clean(row[index]) : "" }
+            func cell(_ index: Int) -> String { index < row.count ? unguarded(Normalizer.clean(row[index])) : "" }
 
             var values: [ProposalField: FieldValue] = [:]
             var edited = false

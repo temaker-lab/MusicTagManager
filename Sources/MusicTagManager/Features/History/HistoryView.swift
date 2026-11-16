@@ -66,15 +66,15 @@ struct HistoryView: View {
             Spacer()
             if !job.isFinished {
                 Button(L("history.resume")) { Task { await state.resume(jobID: job.id) } }
-                    .disabled(state.isApplying)
+                    .disabled(state.isBusy)
                 Button(L("history.cancelRemaining")) { state.cancel(jobID: job.id) }
-                    .disabled(state.isApplying)
+                    .disabled(state.isBusy)
             }
             if job.canUndo {
                 Button(L("history.undoWholeJob")) {
                     pendingUndo = UndoRequest(scope: .job(job.id), description: Lf("history.undoDescWholeJob", job.title))
                 }
-                .disabled(state.isApplying)
+                .disabled(state.isBusy)
             }
         }
     }
@@ -101,7 +101,7 @@ struct HistoryView: View {
                     pendingUndo = UndoRequest(scope: .track(jobID: job.id, id), description: Lf("history.undoDescTrack", item.label))
                 }
                 .buttonStyle(.borderless)
-                .disabled(state.isApplying)
+                .disabled(state.isBusy)
             }
         }
     }
